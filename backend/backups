@@ -1,0 +1,21 @@
+const { exec } = require('child_process');
+const path = require('path');
+require('dotenv').config();
+
+// Формируем имя файла с текущей датой
+const date = new Date().toISOString().split('T')[0];
+const fileName = `backup-${date}.sql`;
+const backupPath = path.join(__dirname, 'backups', fileName);
+
+// Команда для создания дампа базы данных
+const cmd = `pg_dump -U ${process.env.DB_USER} -h ${process.env.DB_HOST} -p ${process.env.DB_PORT} ${process.env.DB_NAME} > ${backupPath}`;
+
+console.log(`Начинаем создание бэкапа: ${fileName}...`);
+
+exec(cmd, { env: { ...process.env, PGPASSWORD: process.env.DB_PASSWORD } }, (error, stdout, stderr) => {
+    if (error) {
+        console.error(`❌ Ошибка резервного копирования: ${error.message}`);
+        return;
+    }
+    console.log(`✅ Бэкап успешно создан и сохранен в: ${backupPath}`);
+});
