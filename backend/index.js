@@ -27,13 +27,11 @@ app.get('/api/orders', async (req, res) => {
 // 2. Создать новый заказ (от диспетчера или системы магазина)
 app.post('/api/orders', async (req, res) => {
     try {
-        // Вытаскиваем данные из тела запроса
         const {
             pickup_address, delivery_address, deadline,
             client_name, client_phone, cargo_details
         } = req.body;
 
-        // SQL-запрос на добавление строки
         const query = `
             INSERT INTO orders (pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details)
             VALUES ($1, $2, $3, $4, $5, $6)
@@ -43,8 +41,21 @@ app.post('/api/orders', async (req, res) => {
 
         const newOrder = await db.query(query, values);
         
-        // Возвращаем созданный заказ обратно как подтверждение
-        res.status(201).json(newOrder.rows[0]);
+        // --- ВОТ ТА САМАЯ ВАЖНАЯ СТРОЧКА ---
+        const order = newOrder.rows[0]; 
+        
+        // --- НОВЫЙ БЛОК: Отправка уведомления в Telegram ---
+        if (process.env.TELEGRAM_CHAT_ID) {
+            const message = `🚨 <b>НОВЫЙ ЗАКАЗ #${order.id}</b>\n\n` +
+                            `📍 <b>Откуда:</b> ${order.pickup_address}\n` +
+                            `🏁 <b>Куда:</b> ${order.delivery_address}\n` +
+                            `👤 <b>Клиент:</b> ${order.client_name}`;
+            
+            await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML' });
+        }
+        // ---------------------------------------------------
+
+        res.status(201).json(order);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Ошибка при создании заказа' });
