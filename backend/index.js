@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const db = require('./db'); // Подключаем базу данных
+const bot = require('./bot'); // Подключаем нашего Telegram-бота
 
 const app = express();
 const PORT = process.env.PORT || 3000;
