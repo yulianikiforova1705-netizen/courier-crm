@@ -10,13 +10,20 @@
         .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid #2196f3; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .status { display: inline-block; padding: 5px 10px; border-radius: 5px; background: #e3f2fd; color: #1976d2; font-weight: bold; font-size: 0.9em; margin-bottom: 10px;}
-        .btn { background: #4caf50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;}
+        
+        /* Стили кнопок */
+        .btn { background: #4caf50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; margin-right: 5px; margin-bottom: 5px;}
         .btn:hover { background: #45a049; }
         .btn-complete { background: #2196f3; }
         .btn-complete:hover { background: #1976d2; }
+        .btn-map { background: #ff9800; }
+        .btn-map:hover { background: #e68a00; }
         
-        /* Стили для формы */
         input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; }
+        
+        /* Контейнер для карт */
+        .map-container { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
+        .map-box { width: 100%; height: 250px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -25,8 +32,8 @@
     <div class="card">
         <h2>➕ Создать новый заказ</h2>
         <form id="create-order-form" onsubmit="createOrder(event)">
-            <input type="text" id="pickup" placeholder="Откуда забрать (адрес)" required>
-            <input type="text" id="delivery" placeholder="Куда доставить (адрес)" required>
+            <input type="text" id="pickup" placeholder="Откуда забрать (например: Москва, Красная площадь, 1)" required>
+            <input type="text" id="delivery" placeholder="Куда доставить (например: Москва, ул. Тверская, 7)" required>
             <input type="text" id="client" placeholder="Имя клиента" required>
             <button type="submit" class="btn">Отправить в базу</button>
         </form>
@@ -36,10 +43,9 @@
     <div id="orders-list">Загрузка данных...</div>
 
     <script>
-        // Функция создания нового заказа
+        // Создание заказа
         async function createOrder(event) {
-            event.preventDefault(); // Чтобы страница не перезагружалась при отправке формы
-            
+            event.preventDefault();
             const pickup = document.getElementById('pickup').value;
             const delivery = document.getElementById('delivery').value;
             const client = document.getElementById('client').value;
@@ -52,15 +58,15 @@
                         pickup_address: pickup,
                         delivery_address: delivery,
                         client_name: client,
-                        client_phone: 'Не указан', // Пока ставим заглушку для скорости
-                        deadline: new Date(Date.now() + 86400000).toISOString(), // Дедлайн +1 день
+                        client_phone: 'Не указан',
+                        deadline: new Date(Date.now() + 86400000).toISOString(),
                         cargo_details: 'Стандартная доставка'
                     })
                 });
                 
                 if (response.ok) {
-                    document.getElementById('create-order-form').reset(); // Очищаем поля ввода
-                    loadOrders(); // Мгновенно обновляем список заказов внизу
+                    document.getElementById('create-order-form').reset();
+                    loadOrders();
                 } else {
                     alert('Ошибка на сервере при создании заказа');
                 }
@@ -70,7 +76,7 @@
             }
         }
 
-        // Загрузка и отрисовка заказов
+        // Загрузка заказов
         async function loadOrders() {
             try {
                 const response = await fetch('http://localhost:3000/api/orders');
@@ -80,9 +86,9 @@
                 listDiv.innerHTML = orders.map(order => {
                     let actionButton = '';
                     if (order.status === 'new') {
-                        actionButton = `<button class="btn" onclick="updateStatus(${order.id}, 'in_progress')">Взять в работу</button>`;
+                        actionButton = `<button class="btn" onclick="updateStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
                     } else if (order.status === 'in_progress') {
-                        actionButton = `<button class="btn btn-complete" onclick="updateStatus(${order.id}, 'completed')">Заказ доставлен</button>`;
+                        actionButton = `<button class="btn btn-complete" onclick="updateStatus(${order.id}, 'completed')">🟢 Заказ доставлен</button>`;
                     }
 
                     return `
@@ -92,7 +98,19 @@
                         <p><strong>📍 Откуда:</strong> ${order.pickup_address}</p>
                         <p><strong>🏁 Куда:</strong> ${order.delivery_address}</p>
                         <p><strong>Статус:</strong> <span class="status">${order.status}</span></p>
-                        ${actionButton}
+                        
+                        <div>
+                            ${actionButton}
+                            <button class="btn btn-map" onclick="toggleMap(${order.id}, '${order.pickup_address.replace(/'/g, "\\'")}', '${order.delivery_address.replace(/'/g, "\\'")}')">📍 Показать на карте</button>
+                        </div>
+
+                        <div class="map-container" id="map-${order.id}">
+                            <p style="margin: 0 0 5px 0;"><strong>Забрать отсюда:</strong></p>
+                            <iframe class="map-box" src="https://yandex.ru/map-widget/v1/?text=${encodeURIComponent(order.pickup_address)}" frameborder="0" allowfullscreen="true"></iframe>
+                            
+                            <p style="margin: 10px 0 5px 0;"><strong>Доставить сюда:</strong></p>
+                            <iframe class="map-box" src="https://yandex.ru/map-widget/v1/?text=${encodeURIComponent(order.delivery_address)}" frameborder="0" allowfullscreen="true"></iframe>
+                        </div>
                     </div>
                     `;
                 }).join('');
@@ -101,7 +119,17 @@
             }
         }
 
-        // Функция изменения статуса
+        // Открытие/закрытие карт
+        function toggleMap(id, pickup, delivery) {
+            const mapDiv = document.getElementById(`map-${id}`);
+            if (mapDiv.style.display === 'none' || mapDiv.style.display === '') {
+                mapDiv.style.display = 'block';
+            } else {
+                mapDiv.style.display = 'none';
+            }
+        }
+
+        // Изменение статуса
         async function updateStatus(id, newStatus) {
             try {
                 const response = await fetch(`http://localhost:3000/api/orders/${id}/status`, {
