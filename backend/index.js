@@ -49,7 +49,30 @@ app.post('/api/orders', async (req, res) => {
         res.status(500).json({ error: 'Ошибка при создании заказа' });
     }
 });
+// 3. Обновить статус заказа (для курьера)
+app.patch('/api/orders/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // Получаем новый статус (например, 'in_progress')
 
+        const query = `
+            UPDATE orders 
+            SET status = $1 
+            WHERE id = $2 
+            RETURNING *;
+        `;
+        const result = await db.query(query, [status, id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Заказ не найден' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Ошибка при обновлении статуса' });
+    }
+});
 // Запуск сервера
 app.listen(PORT, () => {
     console.log(`Сервер работает на порту ${PORT}`);
