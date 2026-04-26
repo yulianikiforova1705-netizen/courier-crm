@@ -8,7 +8,11 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f9; padding: 20px; margin: 0; }
         h1 { color: #333; }
         .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .status { display: inline-block; padding: 5px 10px; border-radius: 5px; background: #e3f2fd; color: #1976d2; font-weight: bold; font-size: 0.9em; }
+        .status { display: inline-block; padding: 5px 10px; border-radius: 5px; background: #e3f2fd; color: #1976d2; font-weight: bold; font-size: 0.9em; margin-bottom: 10px;}
+        .btn { background: #4caf50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;}
+        .btn:hover { background: #45a049; }
+        .btn-complete { background: #2196f3; }
+        .btn-complete:hover { background: #1976d2; }
     </style>
 </head>
 <body>
@@ -16,24 +20,54 @@
     <div id="orders-list">Загрузка данных...</div>
 
     <script>
+        // Загрузка и отрисовка заказов
         async function loadOrders() {
             try {
-                // Обращаемся к нашему бэкенду
                 const response = await fetch('http://localhost:3000/api/orders');
                 const orders = await response.json();
                 const listDiv = document.getElementById('orders-list');
                 
-                // Отрисовываем каждый заказ
-                listDiv.innerHTML = orders.map(order => `
+                listDiv.innerHTML = orders.map(order => {
+                    // Логика показа разных кнопок в зависимости от статуса
+                    let actionButton = '';
+                    if (order.status === 'new') {
+                        actionButton = `<button class="btn" onclick="updateStatus(${order.id}, 'in_progress')">Взять в работу</button>`;
+                    } else if (order.status === 'in_progress') {
+                        actionButton = `<button class="btn btn-complete" onclick="updateStatus(${order.id}, 'completed')">Заказ доставлен</button>`;
+                    }
+
+                    return `
                     <div class="order-card">
                         <h3>Заказ #${order.id}</h3>
                         <p><strong>Откуда:</strong> ${order.pickup_address}</p>
                         <p><strong>Куда:</strong> ${order.delivery_address}</p>
                         <p><strong>Статус:</strong> <span class="status">${order.status}</span></p>
+                        ${actionButton}
                     </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (err) {
                 document.getElementById('orders-list').innerHTML = '<p style="color: red;">Ошибка: проверь, запущен ли сервер бэкенда!</p>';
+            }
+        }
+
+        // Функция изменения статуса на сервере
+        async function updateStatus(id, newStatus) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/orders/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (response.ok) {
+                    loadOrders(); // Если успешно — сразу перезагружаем список на экране
+                } else {
+                    alert('Не удалось обновить статус');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка сети при обновлении статуса');
             }
         }
         
