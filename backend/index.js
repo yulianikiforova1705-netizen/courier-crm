@@ -51,7 +51,16 @@ app.post('/api/orders', async (req, res) => {
                             `🏁 <b>Куда:</b> ${order.delivery_address}\n` +
                             `👤 <b>Клиент:</b> ${order.client_name}`;
             
-            await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML' });
+            // Отправляем сообщение с кнопками (inline keyboard)
+            await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { 
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '🟡 Взять в работу', callback_data: `status_in_progress_${order.id}` }],
+                        [{ text: '🟢 Доставлено', callback_data: `status_completed_${order.id}` }]
+                    ]
+                }
+            });
         }
         // ---------------------------------------------------
 
