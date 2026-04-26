@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Курьерская CRM</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f9; padding: 20px; margin: 0; }
+        h1 { color: #333; }
+        .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .status { display: inline-block; padding: 5px 10px; border-radius: 5px; background: #e3f2fd; color: #1976d2; font-weight: bold; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>📦 Актуальные заказы</h1>
+    <div id="orders-list">Загрузка данных...</div>
+
+    <script>
+        async function loadOrders() {
+            try {
+                // Обращаемся к нашему бэкенду
+                const response = await fetch('http://localhost:3000/api/orders');
+                const orders = await response.json();
+                const listDiv = document.getElementById('orders-list');
+                
+                // Отрисовываем каждый заказ
+                listDiv.innerHTML = orders.map(order => `
+                    <div class="order-card">
+                        <h3>Заказ #${order.id}</h3>
+                        <p><strong>Откуда:</strong> ${order.pickup_address}</p>
+                        <p><strong>Куда:</strong> ${order.delivery_address}</p>
+                        <p><strong>Статус:</strong> <span class="status">${order.status}</span></p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                document.getElementById('orders-list').innerHTML = '<p style="color: red;">Ошибка: проверь, запущен ли сервер бэкенда!</p>';
+            }
+        }
+        
+        loadOrders();
+    </script>
+</body>
+</html>
