@@ -5,21 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Курьерская CRM</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f9; padding: 20px; margin: 0; }
-        h1 { color: #333; }
-        .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f9; padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1, h2 { color: #333; }
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid #2196f3; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .status { display: inline-block; padding: 5px 10px; border-radius: 5px; background: #e3f2fd; color: #1976d2; font-weight: bold; font-size: 0.9em; margin-bottom: 10px;}
         .btn { background: #4caf50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;}
         .btn:hover { background: #45a049; }
         .btn-complete { background: #2196f3; }
         .btn-complete:hover { background: #1976d2; }
+        
+        /* Стили для формы */
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; }
     </style>
 </head>
 <body>
-    <h1>📦 Актуальные заказы</h1>
+    <h1>🚀 Курьерская панель</h1>
+
+    <div class="card">
+        <h2>➕ Создать новый заказ</h2>
+        <form id="create-order-form" onsubmit="createOrder(event)">
+            <input type="text" id="pickup" placeholder="Откуда забрать (адрес)" required>
+            <input type="text" id="delivery" placeholder="Куда доставить (адрес)" required>
+            <input type="text" id="client" placeholder="Имя клиента" required>
+            <button type="submit" class="btn">Отправить в базу</button>
+        </form>
+    </div>
+
+    <h2>📦 Актуальные заказы</h2>
     <div id="orders-list">Загрузка данных...</div>
 
     <script>
+        // Функция создания нового заказа
+        async function createOrder(event) {
+            event.preventDefault(); // Чтобы страница не перезагружалась при отправке формы
+            
+            const pickup = document.getElementById('pickup').value;
+            const delivery = document.getElementById('delivery').value;
+            const client = document.getElementById('client').value;
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pickup_address: pickup,
+                        delivery_address: delivery,
+                        client_name: client,
+                        client_phone: 'Не указан', // Пока ставим заглушку для скорости
+                        deadline: new Date(Date.now() + 86400000).toISOString(), // Дедлайн +1 день
+                        cargo_details: 'Стандартная доставка'
+                    })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('create-order-form').reset(); // Очищаем поля ввода
+                    loadOrders(); // Мгновенно обновляем список заказов внизу
+                } else {
+                    alert('Ошибка на сервере при создании заказа');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка сети');
+            }
+        }
+
         // Загрузка и отрисовка заказов
         async function loadOrders() {
             try {
@@ -28,7 +78,6 @@
                 const listDiv = document.getElementById('orders-list');
                 
                 listDiv.innerHTML = orders.map(order => {
-                    // Логика показа разных кнопок в зависимости от статуса
                     let actionButton = '';
                     if (order.status === 'new') {
                         actionButton = `<button class="btn" onclick="updateStatus(${order.id}, 'in_progress')">Взять в работу</button>`;
@@ -39,19 +88,20 @@
                     return `
                     <div class="order-card">
                         <h3>Заказ #${order.id}</h3>
-                        <p><strong>Откуда:</strong> ${order.pickup_address}</p>
-                        <p><strong>Куда:</strong> ${order.delivery_address}</p>
+                        <p><strong>👤 Клиент:</strong> ${order.client_name}</p>
+                        <p><strong>📍 Откуда:</strong> ${order.pickup_address}</p>
+                        <p><strong>🏁 Куда:</strong> ${order.delivery_address}</p>
                         <p><strong>Статус:</strong> <span class="status">${order.status}</span></p>
                         ${actionButton}
                     </div>
                     `;
                 }).join('');
             } catch (err) {
-                document.getElementById('orders-list').innerHTML = '<p style="color: red;">Ошибка: проверь, запущен ли сервер бэкенда!</p>';
+                document.getElementById('orders-list').innerHTML = '<p style="color: red;">Ошибка загрузки</p>';
             }
         }
 
-        // Функция изменения статуса на сервере
+        // Функция изменения статуса
         async function updateStatus(id, newStatus) {
             try {
                 const response = await fetch(`http://localhost:3000/api/orders/${id}/status`, {
@@ -59,15 +109,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus })
                 });
-                
-                if (response.ok) {
-                    loadOrders(); // Если успешно — сразу перезагружаем список на экране
-                } else {
-                    alert('Не удалось обновить статус');
-                }
+                if (response.ok) loadOrders();
             } catch (err) {
                 console.error(err);
-                alert('Ошибка сети при обновлении статуса');
             }
         }
         
