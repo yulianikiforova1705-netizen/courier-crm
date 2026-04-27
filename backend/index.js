@@ -71,7 +71,7 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 // 3. Обновить статус заказа (для курьера)
-app.patch('/api/orders/:id/status', async (req, res) => {
+app.put('/api/orders/:id/status', async (req, res) => { // <-- Изменили patch на put
     try {
         const { id } = req.params;
         const { status } = req.body; // Получаем новый статус (например, 'in_progress')
