@@ -25,8 +25,7 @@ app.get('/api/orders', async (req, res) => {
         res.status(500).json({ error: 'Ошибка сервера при получении заказов' });
     }
 });
-
-// 2. Создать новый заказ (от диспетчера или системы магазина)
+// 2. Создать новый заказ
 app.post('/api/orders', async (req, res) => {
     try {
         const {
@@ -34,39 +33,47 @@ app.post('/api/orders', async (req, res) => {
             client_name, client_phone, cargo_details, price
         } = req.body;
 
+        // Принудительно конвертируем цену в число, если пришла пустая строка - ставим 0
+        const numericPrice = parseInt(price) || 0;
+
         const query = `
             INSERT INTO orders (pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, price)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
         `;
-        // Если цену не указали, ставим 0
-        const values = [pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, price || 0];
+        
+        const values = [pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, numericPrice];
 
         const newOrder = await db.query(query, values);
         const order = newOrder.rows[0]; 
-
-        // Отправка уведомления в Telegram
+        
+        // Отправка уведомления в Telegram (с проверкой, что бот подключен)
         if (process.env.TELEGRAM_CHAT_ID) {
-            const message = `🚨 <b>НОВЫЙ ЗАКАЗ #${order.id}</b>\n\n` +
-                            `📍 <b>Откуда:</b> ${order.pickup_address}\n` +
-                            `🏁 <b>Куда:</b> ${order.delivery_address}\n` +
-                            `👤 <b>Клиент:</b> ${order.client_name}\n` +
-                            `💰 <b>Стоимость:</b> ${order.price} ₽`;
-
-            const bot = require('./bot');
-            await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { 
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: '🟡 Взять в работу', callback_data: `status_in_progress_${order.id}` }],
-                        [{ text: '🟢 Доставлено', callback_data: `status_completed_${order.id}` }]
-                    ]
-                }
-            });
+            try {
+                const bot = require('./bot');
+                const message = `🚨 <b>НОВЫЙ ЗАКАЗ #${order.id}</b>\n\n` +
+                                `📍 <b>Откуда:</b> ${order.pickup_address}\n` +
+                                `🏁 <b>Куда:</b> ${order.delivery_address}\n` +
+                                `👤 <b>Клиент:</b> ${order.client_name}\n` +
+                                `💰 <b>Стоимость:</b> ${order.price} ₽`;
+                
+                await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { 
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: '🟡 Взять в работу', callback_data: `status_in_progress_${order.id}` }],
+                            [{ text: '🟢 Доставлено', callback_data: `status_completed_${order.id}` }]
+                        ]
+                    }
+                });
+            } catch (botErr) {
+                console.log('Ошибка при отправке в Telegram:', botErr.message);
+                // Если бот упал, мы всё равно сохраняем заказ!
+            }
         }
         res.status(201).json(order);
     } catch (err) {
-        console.error(err);
+        console.error('ОШИБКА БАЗЫ ДАННЫХ:', err);
         res.status(500).json({ error: 'Ошибка при создании заказа' });
     }
 });
