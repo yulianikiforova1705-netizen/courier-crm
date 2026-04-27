@@ -99,17 +99,12 @@
                         <p><strong>🏁 Куда:</strong> ${order.delivery_address}</p>
                         <p><strong>Статус:</strong> <span class="status">${order.status}</span></p>
                         
-                        <div>
+                        <div style="margin-top: 15px;">
                             ${actionButton}
-                            <button class="btn btn-map" onclick="toggleMap(${order.id}, '${order.pickup_address.replace(/'/g, "\\'")}', '${order.delivery_address.replace(/'/g, "\\'")}')">📍 Показать на карте</button>
                         </div>
-
-                        <div class="map-container" id="map-${order.id}">
-                            <p style="margin: 0 0 5px 0;"><strong>Забрать отсюда:</strong></p>
-                            <iframe class="map-box" src="https://yandex.ru/map-widget/v1/?text=${encodeURIComponent(order.pickup_address)}" frameborder="0" allowfullscreen="true"></iframe>
-                            
-                            <p style="margin: 10px 0 5px 0;"><strong>Доставить сюда:</strong></p>
-                            <iframe class="map-box" src="https://yandex.ru/map-widget/v1/?text=${encodeURIComponent(order.delivery_address)}" frameborder="0" allowfullscreen="true"></iframe>
+                        <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                            <a class="btn btn-map" style="text-decoration: none;" href="https://yandex.ru/maps/?text=${encodeURIComponent(order.pickup_address)}" target="_blank">📍 Откуда (Я.Карты)</a>
+                            <a class="btn btn-map" style="text-decoration: none;" href="https://yandex.ru/maps/?text=${encodeURIComponent(order.delivery_address)}" target="_blank">🏁 Куда (Я.Карты)</a>
                         </div>
                     </div>
                     `;
@@ -145,9 +140,17 @@
         
         // Загружаем заказы при первом открытии страницы
         loadOrders();
-        
-        // 🪄 МАГИЯ: Автоматически обновляем данные каждые 3 секунды (3000 миллисекунд)
-        setInterval(loadOrders, 3000);
+       // 🪄 УМНОЕ автообновление
+setInterval(() => {
+    const pickup = document.getElementById('pickup').value;
+    const delivery = document.getElementById('delivery').value;
+    const client = document.getElementById('client').value;
+
+    // Если все поля пустые — обновляем список. Если ты что-то пишешь — ждем.
+    if (pickup === '' && delivery === '' && client === '') {
+        loadOrders();
+    }
+}, 3000);
     </script>
 </body>
 </html>
