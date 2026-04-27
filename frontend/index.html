@@ -73,7 +73,25 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-
+/* 📑 Вкладки */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn {
+            background: transparent;
+            color: #64748b;
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
         /* Карточки */
         .card, .order-card { 
             background: var(--card-bg); 
@@ -198,8 +216,13 @@
         <input type="text" id="client" placeholder="Имя клиента">
         <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">Отправить в базу</button>
     </div>
-
-    <h2>📦 Актуальные заказы</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+        <h2 style="margin: 0;">📦 Заказы</h2>
+        <div class="tabs" style="margin: 0;">
+            <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
+            <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
+        </div>
+    </div>
     <div id="orders-list">Загрузка...</div>
 
     <div class="app-footer">
@@ -226,7 +249,15 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             themeBtn.innerText = isDark ? '☀️' : '🌙';
         }
+// 📑 Логика вкладок
+        let currentTab = 'active';
 
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-active').classList.toggle('active', tab === 'active');
+            document.getElementById('tab-archive').classList.toggle('active', tab === 'archive');
+            loadOrders(); // Перезагружаем список при смене вкладки
+        }
         // 📡 ВНИМАНИЕ: Проверь, чтобы тут стояла твоя ссылка на Render!
         const API_URL = 'https://courier-crm-api.onrender.com';
 
@@ -236,16 +267,31 @@
                 const orders = await response.json();
                 const list = document.getElementById('orders-list');
                 list.innerHTML = '';
+// Фильтруем заказы в зависимости от выбранной вкладки
+                const filteredOrders = orders.filter(order => {
+                    if (currentTab === 'active') {
+                        return order.status !== 'completed'; // Показываем новые и "в работе"
+                    } else {
+                        return order.status === 'completed'; // Показываем только доставленные
+                    }
+                });
 
-                orders.forEach(order => {
+                // Если заказов нет — показываем сообщение
+                if (filteredOrders.length === 0) {
+                    list.innerHTML = '<p style="color: #64748b;">В этой категории пока пусто.</p>';
+                    return;
+                }
+
+                // Отрисовываем только отфильтрованные заказы
+                filteredOrders.forEach(order => {
                     const card = document.createElement('div');
                     card.className = 'order-card';
                     
                     let actionButton = '';
                     if (order.status === 'new') {
-                        actionButton = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟢 Взять в работу</button>`;
+                        actionButton = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
                     } else if (order.status === 'in_progress') {
-                        actionButton = `<button class="btn btn-complete" onclick="updateOrderStatus(${order.id}, 'completed')">✅ Доставлено</button>`;
+                        actionButton = `<button class="btn btn-complete" onclick="updateOrderStatus(${order.id}, 'completed')">🟢 Доставлено</button>`;
                     }
 
                     card.innerHTML = `
