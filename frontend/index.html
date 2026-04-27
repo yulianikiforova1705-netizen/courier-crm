@@ -132,7 +132,7 @@
         .btn-complete { border-color: #10b981; color: #10b981; }
         .btn-complete:hover { background: #10b981; color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
 
-        .btn-map { 
+       .btn-map { 
             background: var(--primary); 
             color: var(--bg); 
             border: none; 
@@ -140,6 +140,11 @@
             text-align: center;
             text-decoration: none;
             display: block;
+            
+            /* ✨ ДОБАВЛЯЕМ ЭТИ СТРОКИ: */
+            box-sizing: border-box; /* Учитываем внутренние отступы в ширине 100% */
+            margin: 0; /* Убираем боковые отступы, из-за которых кнопка выезжала */
+            white-space: normal; /* Позволяем длинному тексту переноситься на новую строку */
         }
         
         .btn-map:hover { background: var(--primary); filter: brightness(110%); }
