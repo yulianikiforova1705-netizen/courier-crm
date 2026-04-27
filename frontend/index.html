@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>⚡ CRM Доставки</title>
+    <title>V-System | Управление доставкой</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -116,10 +116,45 @@
             border-color: var(--accent); 
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
         }
+        /* 🌙 Темная тема (автоматическая адаптация) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;        /* Глубокий темный фон */
+                --card-bg: #1e293b;   /* Темно-синие сланцевые карточки */
+                --text-main: #f8fafc; /* Платиново-белый текст */
+                --primary: #f1f5f9;   /* Светлый акцент для основного текста */
+            }
+            
+            h1 { color: var(--accent); } /* Золотой заголовок бренда */
+            
+            .card, .order-card {
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            }
+            
+            input {
+                background: #0f172a;
+                color: #f8fafc;
+                border-color: #334155;
+            }
+            
+            input:focus {
+                background: #1e293b;
+            }
+            
+            .status {
+                background: #334155;
+                color: #e2e8f0;
+                border-color: #475569;
+            }
+            
+            .btn { box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+            .btn-map { color: #0f172a; font-weight: 700; } /* Темный текст на золотой кнопке */
+        }
     </style>
 </head>
 <body>
-    <h1>🚀 Курьерская панель</h1>
+    <h1>V-System</h1>
 
     <div class="card">
         <h2>➕ Создать новый заказ</h2>
