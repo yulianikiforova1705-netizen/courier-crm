@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const db = require('./db'); // Подключаем базу данных
+// Автоматическое добавление колонки с ценой, если её нет
+db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS price integer DEFAULT 0').catch(console.error);
 const bot = require('./bot'); // Подключаем нашего Telegram-бота
 
 const app = express();
@@ -29,29 +31,29 @@ app.post('/api/orders', async (req, res) => {
     try {
         const {
             pickup_address, delivery_address, deadline,
-            client_name, client_phone, cargo_details
+            client_name, client_phone, cargo_details, price
         } = req.body;
 
         const query = `
-            INSERT INTO orders (pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO orders (pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, price)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
         `;
-        const values = [pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details];
+        // Если цену не указали, ставим 0
+        const values = [pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, price || 0];
 
         const newOrder = await db.query(query, values);
-        
-        // --- ВОТ ТА САМАЯ ВАЖНАЯ СТРОЧКА ---
         const order = newOrder.rows[0]; 
-        
-        // --- НОВЫЙ БЛОК: Отправка уведомления в Telegram ---
+
+        // Отправка уведомления в Telegram
         if (process.env.TELEGRAM_CHAT_ID) {
             const message = `🚨 <b>НОВЫЙ ЗАКАЗ #${order.id}</b>\n\n` +
                             `📍 <b>Откуда:</b> ${order.pickup_address}\n` +
                             `🏁 <b>Куда:</b> ${order.delivery_address}\n` +
-                            `👤 <b>Клиент:</b> ${order.client_name}`;
-            
-            // Отправляем сообщение с кнопками (inline keyboard)
+                            `👤 <b>Клиент:</b> ${order.client_name}\n` +
+                            `💰 <b>Стоимость:</b> ${order.price} ₽`;
+
+            const bot = require('./bot');
             await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { 
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -62,8 +64,6 @@ app.post('/api/orders', async (req, res) => {
                 }
             });
         }
-        // ---------------------------------------------------
-
         res.status(201).json(order);
     } catch (err) {
         console.error(err);

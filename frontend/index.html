@@ -249,10 +249,14 @@
         <input type="text" id="pickup" placeholder="Откуда забрать (например: Москва, Красная площадь, 1)">
         <input type="text" id="delivery" placeholder="Куда доставить (например: Москва, ул. Тверская, 7)">
         <input type="text" id="client" placeholder="Имя клиента">
+        <input type="number" id="price" placeholder="Стоимость доставки (₽)" style="margin-bottom: 15px;">
         <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">Отправить в базу</button>
     </div>
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
         <h2 style="margin: 0;">📦 Заказы</h2>
+        <div id="income-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 5px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #10b981; display: none; margin-bottom: 10px;">
+            Выручка: 0 ₽
+        </div>
         <div class="tabs" style="margin: 0;">
             <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
             <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
@@ -331,7 +335,22 @@
 // Получаем текст из строки поиска и переводим в нижний регистр
                 const searchInput = document.getElementById('search-input');
                 const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+// Подсчет общей выручки из выполненных заказов
+                let totalIncome = 0;
+                orders.forEach(o => {
+                    if (o.status === 'completed') {
+                        totalIncome += Number(o.price) || 0;
+                    }
+                });
 
+                // Показываем выручку только во вкладке "Архив"
+                const incomeBadge = document.getElementById('income-badge');
+                if (currentTab === 'archive') {
+                    incomeBadge.style.display = 'inline-block';
+                    incomeBadge.innerText = `💰 Общая выручка: ${totalIncome} ₽`;
+                } else {
+                    incomeBadge.style.display = 'none';
+                }
                 // Фильтруем заказы (по вкладкам И по строке поиска)
                 const filteredOrders = orders.filter(order => {
                     // 1. Проверяем вкладку
@@ -373,6 +392,8 @@
                         <p>📍 <strong>Откуда:</strong> ${order.pickup_address}</p>
                         <p>🏁 <strong>Куда:</strong> ${order.delivery_address}</p>
                         <p>Статус: <span class="status">${order.status}</span></p>
+                        <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
+                        <p>💵 <strong>Сумма:</strong> ${order.price || 0} ₽</p>
                         <div style="margin-top: 15px;">
                             ${actionButton}
                         </div>
@@ -391,21 +412,22 @@
             const pickup = document.getElementById('pickup').value;
             const delivery = document.getElementById('delivery').value;
             const client = document.getElementById('client').value;
+            const price = document.getElementById('price').value; // <-- Новая переменная
 
             if (!pickup || !delivery || !client) return alert('Заполни все поля!');
 
             await fetch(`${API_URL}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pickup, delivery, client })
+                body: JSON.stringify({ pickup, delivery, client, price }) // <-- Добавили price
             });
 
             document.getElementById('pickup').value = '';
             document.getElementById('delivery').value = '';
             document.getElementById('client').value = '';
+            document.getElementById('price').value = ''; // <-- Очищаем поле
             loadOrders();
         }
-
         async function updateOrderStatus(id, status) {
             await fetch(`${API_URL}/api/orders/${id}/status`, {
                 method: 'PUT',
