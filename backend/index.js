@@ -4,6 +4,10 @@ require('dotenv').config();
 const db = require('./db'); // Подключаем базу данных
 // Автоматическое добавление колонки с ценой, если её нет
 db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS price integer DEFAULT 0').catch(console.error);
+// Автоматическое добавление колонок для цены и времени
+db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS price integer DEFAULT 0').catch(console.error);
+db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT CURRENT_TIMESTAMP').catch(console.error);
+db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at timestamp').catch(console.error);
 const bot = require('./bot'); // Подключаем нашего Telegram-бота
 
 const app = express();
@@ -80,18 +84,35 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 // 3. Обновить статус заказа (для курьера)
-app.put('/api/orders/:id/status', async (req, res) => { // <-- Изменили patch на put
+app.put('/api/orders/:id/status', async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body; // Получаем новый статус (например, 'in_progress')
+        const { status } = req.body;
 
-        const query = `
-            UPDATE orders 
-            SET status = $1 
-            WHERE id = $2 
-            RETURNING *;
-        `;
-        const result = await db.query(query, [status, id]);
+        let query;
+        let values;
+
+        // Если заказ завершен — фиксируем время финиша
+        if (status === 'completed') {
+            query = `
+                UPDATE orders 
+                SET status = $1, completed_at = CURRENT_TIMESTAMP 
+                WHERE id = $2 
+                RETURNING *;
+            `;
+            values = [status, id];
+        } else {
+            // Для остальных статусов просто обновляем статус
+            query = `
+                UPDATE orders 
+                SET status = $1 
+                WHERE id = $2 
+                RETURNING *;
+            `;
+            values = [status, id];
+        }
+
+        const result = await db.query(query, values);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Заказ не найден' });
@@ -99,7 +120,7 @@ app.put('/api/orders/:id/status', async (req, res) => { // <-- Изменили 
 
         res.json(result.rows[0]);
     } catch (err) {
-        console.error(err);
+        console.error('Ошибка обновления статуса:', err);
         res.status(500).json({ error: 'Ошибка при обновлении статуса' });
     }
 });

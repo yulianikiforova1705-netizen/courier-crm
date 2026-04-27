@@ -385,7 +385,25 @@
                     } else if (order.status === 'in_progress') {
                         actionButton = `<button class="btn btn-complete" onclick="updateOrderStatus(${order.id}, 'completed')">🟢 Доставлено</button>`;
                     }
-
+// --- Расчет времени выполнения ---
+                    let timeInfo = '';
+                    if (order.status === 'completed' && order.created_at && order.completed_at) {
+                        const start = new Date(order.created_at);
+                        const end = new Date(order.completed_at);
+                        const diffMs = end - start; // Разница в миллисекундах
+                        const diffMins = Math.round(diffMs / 60000); // Переводим в минуты
+                        
+                        let timeStr = '';
+                        if (diffMins < 60) {
+                            timeStr = `${diffMins} мин.`;
+                        } else {
+                            const hours = Math.floor(diffMins / 60);
+                            const mins = diffMins % 60;
+                            timeStr = `${hours} ч. ${mins} мин.`;
+                        }
+                        timeInfo = `<p style="color: #00e5ff; font-weight: bold; margin-top: 5px;">⏱ Время выполнения: ${timeStr}</p>`;
+                    }
+                    // ---------------------------------
                     card.innerHTML = `
                         <h3>Заказ #${order.id}</h3>
                         <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
@@ -394,6 +412,8 @@
                         <p>Статус: <span class="status">${order.status}</span></p>
                         <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
                         <p>💵 <strong>Сумма:</strong> ${order.price || 0} ₽</p>
+                        <p>Статус: <span class="status">${order.status}</span></p>
+                        ${timeInfo}
                         <div style="margin-top: 15px;">
                             ${actionButton}
                         </div>
