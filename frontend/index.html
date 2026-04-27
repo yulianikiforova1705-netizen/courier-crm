@@ -417,10 +417,15 @@
             if (!pickup || !delivery || !client) return alert('Заполни все поля!');
 
             await fetch(`${API_URL}/api/orders`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pickup, delivery, client, price }) // <-- Добавили price
-            });
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                pickup_address: pickup, 
+                delivery_address: delivery, 
+                client_name: client, 
+                price: price || 0
+            })
+        });
 
             document.getElementById('pickup').value = '';
             document.getElementById('delivery').value = '';
