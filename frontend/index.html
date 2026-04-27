@@ -1,29 +1,116 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
+ <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Курьерская CRM</title>
+    
+    <title>⚡ CRM Доставки</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f9; padding: 20px; max-width: 800px; margin: 0 auto; }
-        h1, h2 { color: #333; }
-        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid #2196f3; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .status { display: inline-block; padding: 5px 10px; border-radius: 5px; background: #e3f2fd; color: #1976d2; font-weight: bold; font-size: 0.9em; margin-bottom: 10px;}
+        /* 🎨 Современная цветовая палитра */
+        :root {
+            --primary: #6366f1; /* Стильный фиолетово-синий */
+            --success: #10b981; /* Изумрудный */
+            --warning: #f59e0b; /* Янтарный */
+            --bg: #f3f4f6; /* Мягкий серый фон экрана */
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            padding: 20px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            line-height: 1.6;
+        }
+
+        h1 { 
+            text-align: center; 
+            color: var(--primary); 
+            font-size: 2.5em; 
+            margin-bottom: 30px; 
+            text-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
         
-        /* Стили кнопок */
-        .btn { background: #4caf50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; margin-right: 5px; margin-bottom: 5px;}
-        .btn:hover { background: #45a049; }
-        .btn-complete { background: #2196f3; }
-        .btn-complete:hover { background: #1976d2; }
-        .btn-map { background: #ff9800; }
-        .btn-map:hover { background: #e68a00; }
+        h2 { color: var(--text-main); font-weight: 600; }
+
+        /* Объемные карточки с тенями */
+        .card, .order-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 25px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025); 
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
         
-        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: inherit; }
+        /* Анимация при наведении мышки на карточку */
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+
+        .order-card h3 { margin-top: 0; color: var(--primary); }
+
+        /* Стильные плашки статусов */
+        .status { 
+            display: inline-block; 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            background: #e0e7ff; 
+            color: #4338ca; 
+            font-weight: 700; 
+            font-size: 0.85em; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         
-        /* Контейнер для карт */
-        .map-container { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ccc; }
-        .map-box { width: 100%; height: 250px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px; }
+        /* Кнопки с анимацией нажатия */
+        .btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 1em; 
+            font-weight: 600; 
+            margin-right: 8px; 
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover { filter: brightness(110%); transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .btn-complete { background: var(--success); }
+        .btn-map { background: var(--warning); color: #fff; }
+        
+        /* Современные поля ввода для мобилок */
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 10px; 
+            box-sizing: border-box; 
+            font-family: inherit; 
+            font-size: 1em; 
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #f9fafb;
+        }
+        input:focus { 
+            outline: none; 
+            border-color: var(--primary); 
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
     </style>
 </head>
 <body>
