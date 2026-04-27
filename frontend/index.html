@@ -116,41 +116,66 @@
             border-color: var(--accent); 
             box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
         }
-        /* 🌙 Темная тема (автоматическая адаптация) */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #0f172a;        /* Глубокий темный фон */
-                --card-bg: #1e293b;   /* Темно-синие сланцевые карточки */
-                --text-main: #f8fafc; /* Платиново-белый текст */
-                --primary: #f1f5f9;   /* Светлый акцент для основного текста */
-            }
-            
-            h1 { color: var(--accent); } /* Золотой заголовок бренда */
-            
-            .card, .order-card {
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            }
-            
-            input {
-                background: #0f172a;
-                color: #f8fafc;
-                border-color: #334155;
-            }
-            
-            input:focus {
-                background: #1e293b;
-            }
-            
-            .status {
-                background: #334155;
-                color: #e2e8f0;
-                border-color: #475569;
-            }
-            
-            .btn { box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-            .btn-map { color: #0f172a; font-weight: 700; } /* Темный текст на золотой кнопке */
+     /* 🌙 Темная тема (управляется кнопкой) */
+        body.dark-theme {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --primary: #f1f5f9;
         }
+        
+        body.dark-theme .card, body.dark-theme .order-card {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        body.dark-theme input {
+            background: #0f172a;
+            color: #f8fafc;
+            border-color: #334155;
+        }
+        
+        body.dark-theme input:focus { background: #1e293b; }
+        
+        body.dark-theme .status {
+            background: #334155;
+            color: #e2e8f0;
+            border-color: #475569;
+        }
+        
+        body.dark-theme .btn { box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        body.dark-theme .btn-map { color: #0f172a; font-weight: 700; }
+
+        /* Стили для новой шапки и кнопки темы */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .brand-title { margin: 0; font-size: 2.2em; color: var(--primary); font-weight: 700; letter-spacing: -0.5px; }
+        .brand-subtitle { 
+            margin: 0; font-size: 0.75em; color: #64748b; 
+            text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; 
+        }
+        .brand-v { color: var(--accent); font-weight: 700; }
+        
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid #cbd5e1;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        body.dark-theme .theme-toggle { border-color: #475569; background: #1e293b; }
+       
     </style>
 </head>
 <body>
@@ -170,6 +195,24 @@
     <div id="orders-list">Загрузка данных...</div>
 
     <script>
+        // 🌓 Логика переключения тем
+        const themeBtn = document.getElementById('theme-btn');
+        
+        // Проверяем, есть ли сохраненная тема при запуске
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeBtn.innerText = '☀️';
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            
+            // Сохраняем выбор в память устройства
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            // Меняем иконку
+            themeBtn.innerText = isDark ? '☀️' : '🌙';
+        }
         // Создание заказа
         async function createOrder(event) {
             event.preventDefault();
