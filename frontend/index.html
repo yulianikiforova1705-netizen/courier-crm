@@ -251,14 +251,15 @@
         <input type="text" id="client" placeholder="Имя клиента">
         <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">Отправить в базу</button>
     </div>
-<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
         <h2 style="margin: 0;">📦 Заказы</h2>
         <div class="tabs" style="margin: 0;">
             <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
             <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
         </div>
     </div>
-    <div id="orders-list">Загрузка...</div>
+    
+    <input type="text" id="search-input" placeholder="🔍 Поиск по клиенту или адресу..." oninput="loadOrders()" style="margin-bottom: 25px;">
 
     <div class="app-footer">
         Powered by 
@@ -325,13 +326,25 @@
                 const orders = await response.json();
                 const list = document.getElementById('orders-list');
                 list.innerHTML = '';
-// Фильтруем заказы в зависимости от выбранной вкладки
+// Получаем текст из строки поиска и переводим в нижний регистр
+                const searchInput = document.getElementById('search-input');
+                const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+
+                // Фильтруем заказы (по вкладкам И по строке поиска)
                 const filteredOrders = orders.filter(order => {
+                    // 1. Проверяем вкладку
+                    let tabMatch = false;
                     if (currentTab === 'active') {
-                        return order.status !== 'completed'; // Показываем новые и "в работе"
+                        tabMatch = order.status !== 'completed';
                     } else {
-                        return order.status === 'completed'; // Показываем только доставленные
+                        tabMatch = order.status === 'completed';
                     }
+
+                    // 2. Проверяем текст поиска
+                    const textString = `${order.client_name} ${order.pickup_address} ${order.delivery_address}`.toLowerCase();
+                    const searchMatch = textString.includes(searchQuery);
+
+                    return tabMatch && searchMatch;
                 });
 
                 // Если заказов нет — показываем сообщение
