@@ -42,8 +42,21 @@ app.post('/api/orders', async (req, res) => {
             RETURNING *;
         `;
         
-        const values = [pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, numericPrice];
+        // --- БРОНЕБОЙНАЯ ЗАЩИТА ДАННЫХ ---
+        const numericPrice = parseInt(price) || 0;
+        const safeDeadline = new Date().toISOString(); // Сервер сам создает правильное время
+        const safePhone = client_phone || "Не указан";
+        const safeDetails = cargo_details || "Обычная доставка";
 
+        const query = `
+            INSERT INTO orders (pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, price)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *;
+        `;
+        
+        // Передаем наши безопасные переменные (safeDeadline, safePhone и т.д.)
+        const values = [pickup_address, delivery_address, safeDeadline, client_name, safePhone, safeDetails, numericPrice];
+        // ---------------------------------
         const newOrder = await db.query(query, values);
         const order = newOrder.rows[0]; 
         
