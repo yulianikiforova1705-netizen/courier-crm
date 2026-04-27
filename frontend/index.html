@@ -74,9 +74,9 @@
             border: 1px solid #e2e8f0;
         }
         
-        /* Кнопки с благородными оттенками */
+       /* Кнопки: новые технологичные цвета */
         .btn { 
-            background: var(--primary); 
+            background: #2563eb; /* Основной цвет: Глубокий синий (Royal Blue) */
             color: white; 
             border: none; 
             padding: 12px 20px; 
@@ -89,15 +89,14 @@
             transition: all 0.2s ease;
             letter-spacing: 0.3px;
         }
-        .btn:hover { background: #0f172a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30, 41, 59, 0.15); }
+        .btn:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
         .btn:active { transform: translateY(1px); box-shadow: none; }
         
-        .btn-complete { background: var(--success); }
-        .btn-complete:hover { background: #042f2e; box-shadow: 0 4px 12px rgba(17, 94, 89, 0.15);}
+        .btn-complete { background: #059669; } /* Цвет выполнения: Изумрудный */
+        .btn-complete:hover { background: #047857; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);}
         
-        .btn-map { background: var(--accent); color: #fff; }
-        .btn-map:hover { background: #b4850a; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);}
-        
+        .btn-map { background: #6366f1; color: white; } /* Цвет карт: Индиго / Фиолетово-синий */
+        .btn-map:hover { background: #4f46e5; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);}
         /* Минималистичные поля ввода */
         input { 
             width: 100%; 
@@ -144,7 +143,7 @@
         }
         
         body.dark-theme .btn { box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        body.dark-theme .btn-map { color: #0f172a; font-weight: 700; }
+        body.dark-theme .btn-map { color: white; font-weight: 600; }
 
         /* Стили для новой шапки и кнопки темы */
         .app-header {
@@ -213,7 +212,7 @@
     <h2>📦 Актуальные заказы</h2>
     <div id="orders-list">Загрузка данных...</div>
     <div class="app-footer">
-        Система управления от <span class="brand-v">[ V ]</span> V-SYSTEM
+        Powered by <span class="brand-v">[ V ]</span> V-SYSTEM
     </div>
 
     <script>
