@@ -423,13 +423,12 @@
                 pickup_address: pickup, 
                 delivery_address: delivery, 
                 client_name: client, 
-                deadline: "Как можно скорее", // Успокаиваем БД заглушкой
-                client_phone: "Не указан",    // Успокаиваем БД заглушкой
-                cargo_details: "Обычная доставка", // Успокаиваем БД заглушкой
+                deadline: new Date().toISOString(), // <-- Отправляем реальное время
+                client_phone: "Не указан",
+                cargo_details: "Обычная доставка",
                 price: price || 0
             })
         });
-
             document.getElementById('pickup').value = '';
             document.getElementById('delivery').value = '';
             document.getElementById('client').value = '';
