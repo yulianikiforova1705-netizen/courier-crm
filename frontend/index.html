@@ -7,7 +7,7 @@
     <title>V-System | Управление доставкой</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
     <style>
         /* 🎨 Премиальная цветовая палитра (Business Class) */
         :root {
@@ -153,11 +153,27 @@
             align-items: center;
             margin-bottom: 30px;
         }
-        .brand-title { margin: 0; font-size: 2.2em; color: var(--primary); font-weight: 700; letter-spacing: -0.5px; }
-        .brand-subtitle { 
-            margin: 0; font-size: 0.75em; color: #64748b; 
-            text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; 
-        }
+       .brand-title { 
+         margin: 0; 
+         font-family: 'Montserrat', sans-serif; 
+         font-size: 2.8em; 
+         color: var(--primary); 
+         font-weight: 800; 
+         letter-spacing: -1px; 
+         text-transform: uppercase;
+     }
+        .app-footer {
+         text-align: center;
+         margin-top: 40px;
+         padding-top: 20px;
+         border-top: 1px solid rgba(0,0,0,0.05);
+         font-size: 0.8em;
+         color: #64748b;
+         text-transform: uppercase;
+         letter-spacing: 1.5px;
+         font-weight: 600;
+     }
+     body.dark-theme .app-footer { border-color: rgba(255,255,255,0.05); }
         .brand-v { color: var(--accent); font-weight: 700; }
         
         .theme-toggle {
@@ -180,10 +196,7 @@
 </head>
 <body>
    <div class="app-header">
-        <div>
-            <h1 class="brand-title">TrackFlow</h1>
-            <p class="brand-subtitle">powered by <span class="brand-v">[ V ]</span> V-SYSTEM</p>
-        </div>
+        <h1 class="brand-title">TrackFlow</h1>
         <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Сменить тему">🌙</button>
     </div>
 
@@ -199,6 +212,9 @@
 
     <h2>📦 Актуальные заказы</h2>
     <div id="orders-list">Загрузка данных...</div>
+    <div class="app-footer">
+        Система управления от <span class="brand-v">[ V ]</span> V-SYSTEM
+    </div>
 
     <script>
         // 🌓 Логика переключения тем
