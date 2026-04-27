@@ -33,18 +33,9 @@ app.post('/api/orders', async (req, res) => {
             client_name, client_phone, cargo_details, price
         } = req.body;
 
-        // Принудительно конвертируем цену в число, если пришла пустая строка - ставим 0
-        const numericPrice = parseInt(price) || 0;
-
-        const query = `
-            INSERT INTO orders (pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, price)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING *;
-        `;
-        
         // --- БРОНЕБОЙНАЯ ЗАЩИТА ДАННЫХ ---
         const numericPrice = parseInt(price) || 0;
-        const safeDeadline = new Date().toISOString(); // Сервер сам создает правильное время
+        const safeDeadline = new Date().toISOString(); // Сервер сам генерирует время
         const safePhone = client_phone || "Не указан";
         const safeDetails = cargo_details || "Обычная доставка";
 
@@ -54,13 +45,12 @@ app.post('/api/orders', async (req, res) => {
             RETURNING *;
         `;
         
-        // Передаем наши безопасные переменные (safeDeadline, safePhone и т.д.)
         const values = [pickup_address, delivery_address, safeDeadline, client_name, safePhone, safeDetails, numericPrice];
-        // ---------------------------------
+
         const newOrder = await db.query(query, values);
         const order = newOrder.rows[0]; 
         
-        // Отправка уведомления в Telegram (с проверкой, что бот подключен)
+        // Отправка уведомления в Telegram
         if (process.env.TELEGRAM_CHAT_ID) {
             try {
                 const bot = require('./bot');
@@ -81,7 +71,6 @@ app.post('/api/orders', async (req, res) => {
                 });
             } catch (botErr) {
                 console.log('Ошибка при отправке в Telegram:', botErr.message);
-                // Если бот упал, мы всё равно сохраняем заказ!
             }
         }
         res.status(201).json(order);
