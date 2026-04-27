@@ -250,6 +250,7 @@
         <input type="text" id="delivery" placeholder="Куда доставить (например: Москва, ул. Тверская, 7)">
         <input type="text" id="client" placeholder="Имя клиента">
         <input type="number" id="price" placeholder="Стоимость доставки (₽)" style="margin-bottom: 15px;">
+        <input type="datetime-local" id="deadline-input" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
         <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">Отправить в базу</button>
     </div>
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
@@ -403,10 +404,24 @@
                         }
                         timeInfo = `<p style="color: #00e5ff; font-weight: bold; margin-top: 5px;">⏱ Время выполнения: ${timeStr}</p>`;
                     }
+                   // Форматируем дедлайн для красоты
+                    let deadlineText = 'Как можно скорее';
+                    if (order.deadline) {
+                        const dlDate = new Date(order.deadline);
+                        // Проверяем, что дата корректная
+                        if (!isNaN(dlDate)) {
+                            deadlineText = dlDate.toLocaleString('ru-RU', {
+                                day: 'numeric', month: 'short', 
+                                hour: '2-digit', minute:'2-digit'
+                            });
+                        }
+                    }
                     // ---------------------------------
                     card.innerHTML = `
                         <h3>Заказ #${order.id}</h3>
                         <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
+                        <p>💵 <strong>Сумма:</strong> ${order.price || 0} ₽</p>
+                        <p>📅 <strong>К какому времени:</strong> <span style="color: var(--accent);">${deadlineText}</span></p>
                         <p>📍 <strong>Откуда:</strong> ${order.pickup_address}</p>
                         <p>🏁 <strong>Куда:</strong> ${order.delivery_address}</p>
                         <p>Статус: <span class="status">${order.status}</span></p>
@@ -432,35 +447,30 @@
             const pickup = document.getElementById('pickup').value;
             const delivery = document.getElementById('delivery').value;
             const client = document.getElementById('client').value;
-            const price = document.getElementById('price').value; // <-- Новая переменная
+            const price = document.getElementById('price').value;
+            const deadlineVal = document.getElementById('deadline-input').value; // <-- Забираем дату
 
             if (!pickup || !delivery || !client) return alert('Заполни все поля!');
 
-           await fetch(`${API_URL}/api/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                pickup_address: pickup, 
-                delivery_address: delivery, 
-                client_name: client, 
-                deadline: new Date().toISOString(), // <-- Отправляем реальное время
-                client_phone: "Не указан",
-                cargo_details: "Обычная доставка",
-                price: price || 0
-            })
-        });
+            await fetch(`${API_URL}/api/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    pickup_address: pickup, 
+                    delivery_address: delivery, 
+                    client_name: client, 
+                    deadline: deadlineVal, // <-- Отправляем дату на сервер
+                    client_phone: "Не указан",
+                    cargo_details: "Обычная доставка",
+                    price: price || 0
+                })
+            });
+
             document.getElementById('pickup').value = '';
             document.getElementById('delivery').value = '';
             document.getElementById('client').value = '';
-            document.getElementById('price').value = ''; // <-- Очищаем поле
-            loadOrders();
-        }
-        async function updateOrderStatus(id, status) {
-            await fetch(`${API_URL}/api/orders/${id}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status })
-            });
+            document.getElementById('price').value = '';
+            document.getElementById('deadline-input').value = ''; // Очищаем календарь
             loadOrders();
         }
 

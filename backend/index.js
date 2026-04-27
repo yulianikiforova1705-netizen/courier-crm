@@ -39,7 +39,8 @@ app.post('/api/orders', async (req, res) => {
 
         // --- БРОНЕБОЙНАЯ ЗАЩИТА ДАННЫХ ---
         const numericPrice = parseInt(price) || 0;
-        const safeDeadline = new Date().toISOString(); // Сервер сам генерирует время
+        // Если курьер выбрал время - берем его, иначе ставим текущее
+        const safeDeadline = deadline ? new Date(deadline).toISOString() : new Date().toISOString(); 
         const safePhone = client_phone || "Не указан";
         const safeDetails = cargo_details || "Обычная доставка";
 
