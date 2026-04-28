@@ -50,14 +50,19 @@ function switchTab(tab) {
     document.getElementById('accounting-view').style.display = 'none';
     document.getElementById('plan-view').style.display = 'none';
 
-    // Показываем нужный экран
-    document.getElementById(`${tab}-view`).style.display = 'block';
-
-    // Загружаем нужные данные
-    if (tab === 'accounting') loadAccounting();
-    else if (tab === 'plan') loadTasks();
-    else loadOrders();
+    // Показываем нужный экран и загружаем данные
+    if (tab === 'active' || tab === 'archive') {
+        document.getElementById('orders-view').style.display = 'block';
+        loadOrders();
+    } else if (tab === 'accounting') {
+        document.getElementById('accounting-view').style.display = 'block';
+        loadAccounting();
+    } else if (tab === 'plan') {
+        document.getElementById('plan-view').style.display = 'block';
+        loadTasks();
+    }
 }
+    
 
 // 📡 API
 const API_URL = 'https://courier-crm-api.onrender.com';
