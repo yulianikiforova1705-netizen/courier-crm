@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <!-- ЭКРАН 1: ЗАКАЗЫ -->
+   <!-- ЭКРАН 1: ЗАКАЗЫ -->
     <div id="orders-view">
         <!-- Блок создания заказа (Скрывается в архиве) -->
         <div class="card" id="create-order-form">
@@ -45,8 +45,13 @@
             <input type="text" id="client" placeholder="Имя клиента">
             <input type="number" id="price" placeholder="Стоимость (₽)">
             <input type="datetime-local" id="deadline-input" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
-            <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">Отправить в базу</button>
+            <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">ОТПРАВИТЬ В БАЗУ</button>
         </div>
+        
+        <!-- ВОТ ЭТИ ДВЕ СТРОЧКИ СЛУЧАЙНО СТЕРЛИСЬ: -->
+        <input type="text" id="search-input" placeholder="🔍 Поиск по клиенту или адресу..." oninput="loadOrders()" style="margin-bottom: 25px;">
+        <div id="orders-list">Загрузка...</div>
+    </div>
 
     <!-- ЭКРАН 2: ФИНАНСЫ -->
     <div id="accounting-view" style="display: none;">
