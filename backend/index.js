@@ -8,6 +8,15 @@ db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS price integer DEFAULT 0').
 db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS price integer DEFAULT 0').catch(console.error);
 db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT CURRENT_TIMESTAMP').catch(console.error);
 db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at timestamp').catch(console.error);
+// Автоматическое создание таблицы расходов
+db.query(`
+    CREATE TABLE IF NOT EXISTS expenses (
+        id SERIAL PRIMARY KEY,
+        description VARCHAR(255) NOT NULL,
+        amount INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+`).catch(console.error);
 const bot = require('./bot'); // Подключаем нашего Telegram-бота
 
 const app = express();
@@ -123,6 +132,33 @@ app.put('/api/orders/:id/status', async (req, res) => {
     } catch (err) {
         console.error('Ошибка обновления статуса:', err);
         res.status(500).json({ error: 'Ошибка при обновлении статуса' });
+    }
+});
+// ================= БУХГАЛТЕРИЯ =================
+
+// Получить все расходы
+app.get('/api/expenses', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM expenses ORDER BY id DESC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Ошибка получения расходов:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Добавить новый расход
+app.post('/api/expenses', async (req, res) => {
+    try {
+        const { description, amount } = req.body;
+        const result = await db.query(
+            'INSERT INTO expenses (description, amount) VALUES ($1, $2) RETURNING *',
+            [description, parseInt(amount) || 0]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error('Ошибка добавления расхода:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 // Запуск сервера
