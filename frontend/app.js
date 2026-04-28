@@ -201,6 +201,9 @@ async function createOrder() {
 
     if (!pickup || !delivery || !client) return alert('Заполни все поля!');
 
+    // 🕒 МАГИЯ ВРЕМЕНИ: Переводим локальное время в абсолютный международный формат (ISO)
+    const safeDeadline = deadlineVal ? new Date(deadlineVal).toISOString() : null;
+
     await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -208,7 +211,7 @@ async function createOrder() {
             pickup_address: pickup, 
             delivery_address: delivery, 
             client_name: client, 
-            deadline: deadlineVal,
+            deadline: safeDeadline, // <-- Отправляем исправленное время
             client_phone: "Не указан",
             cargo_details: "Обычная доставка",
             price: price || 0
@@ -379,10 +382,13 @@ async function addTask() {
 
     if (!desc || !time) return alert('Заполни описание и время!');
 
+    // 🕒 МАГИЯ ВРЕМЕНИ ДЛЯ ЗАДАЧ
+    const safeTime = new Date(time).toISOString();
+
     await fetch(`${API_URL}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc, remind_at: time })
+        body: JSON.stringify({ description: desc, remind_at: safeTime }) // <-- Отправляем исправленное время
     });
 
     document.getElementById('task-desc').value = '';
