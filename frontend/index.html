@@ -331,12 +331,22 @@
             try {
                 const response = await fetch(`${API_URL}/api/orders`);
                 const orders = await response.json();
-                const list = document.getElementById('orders-list');
-                list.innerHTML = '';
-// Получаем текст из строки поиска и переводим в нижний регистр
+
                 const searchInput = document.getElementById('search-input');
                 const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
-// Подсчет общей выручки из выполненных заказов
+
+                const filteredOrders = orders.filter(order => {
+                    let tabMatch = false;
+                    if (currentTab === 'active') {
+                        tabMatch = order.status !== 'completed';
+                    } else {
+                        tabMatch = order.status === 'completed';
+                    }
+                    const textString = `${order.client_name} ${order.pickup_address} ${order.delivery_address}`.toLowerCase();
+                    const searchMatch = textString.includes(searchQuery);
+                    return tabMatch && searchMatch;
+                });
+
                 let totalIncome = 0;
                 orders.forEach(o => {
                     if (o.status === 'completed') {
@@ -344,55 +354,34 @@
                     }
                 });
 
-                // Показываем выручку только во вкладке "Архив"
                 const incomeBadge = document.getElementById('income-badge');
-                if (currentTab === 'archive') {
-                    incomeBadge.style.display = 'inline-block';
-                    incomeBadge.innerText = `💰 Общая выручка: ${totalIncome} ₽`;
-                } else {
-                    incomeBadge.style.display = 'none';
-                }
-                // Фильтруем заказы (по вкладкам И по строке поиска)
-                const filteredOrders = orders.filter(order => {
-                    // 1. Проверяем вкладку
-                    let tabMatch = false;
-                    if (currentTab === 'active') {
-                        tabMatch = order.status !== 'completed';
+                if (incomeBadge) {
+                    if (currentTab === 'archive') {
+                        incomeBadge.style.display = 'inline-block';
+                        incomeBadge.innerText = `💰 Общая выручка: ${totalIncome} ₽`;
                     } else {
-                        tabMatch = order.status === 'completed';
+                        incomeBadge.style.display = 'none';
                     }
+                }
 
-                    // 2. Проверяем текст поиска
-                    const textString = `${order.client_name} ${order.pickup_address} ${order.delivery_address}`.toLowerCase();
-                    const searchMatch = textString.includes(searchQuery);
+                const list = document.getElementById('orders-list');
+                list.innerHTML = '';
 
-                    return tabMatch && searchMatch;
-                });
-
-                // Если заказов нет — показываем сообщение
                 if (filteredOrders.length === 0) {
-                    list.innerHTML = '<p style="color: #64748b;">В этой категории пока пусто.</p>';
+                    list.innerHTML = '<p style="text-align: center; color: #888;">Заказов пока нет</p>';
                     return;
                 }
 
-                // Отрисовываем только отфильтрованные заказы
                 filteredOrders.forEach(order => {
                     const card = document.createElement('div');
-                    card.className = 'order-card';
-                    
-                    let actionButton = '';
-                    if (order.status === 'new') {
-                        actionButton = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
-                    } else if (order.status === 'in_progress') {
-                        actionButton = `<button class="btn btn-complete" onclick="updateOrderStatus(${order.id}, 'completed')">🟢 Доставлено</button>`;
-                    }
-// --- Расчет времени выполнения ---
+                    card.className = 'card';
+
                     let timeInfo = '';
                     if (order.status === 'completed' && order.created_at && order.completed_at) {
                         const start = new Date(order.created_at);
                         const end = new Date(order.completed_at);
-                        const diffMs = end - start; // Разница в миллисекундах
-                        const diffMins = Math.round(diffMs / 60000); // Переводим в минуты
+                        const diffMs = end - start;
+                        const diffMins = Math.round(diffMs / 60000);
                         
                         let timeStr = '';
                         if (diffMins < 60) {
@@ -404,11 +393,10 @@
                         }
                         timeInfo = `<p style="color: #00e5ff; font-weight: bold; margin-top: 5px;">⏱ Время выполнения: ${timeStr}</p>`;
                     }
-                   // Форматируем дедлайн для красоты
+
                     let deadlineText = 'Как можно скорее';
                     if (order.deadline) {
                         const dlDate = new Date(order.deadline);
-                        // Проверяем, что дата корректная
                         if (!isNaN(dlDate)) {
                             deadlineText = dlDate.toLocaleString('ru-RU', {
                                 day: 'numeric', month: 'short', 
@@ -416,30 +404,39 @@
                             });
                         }
                     }
-                    // ---------------------------------
+
+                    // Магическая ссылка для Яндекса: mode=routes включает построение маршрута
+                    const yandexUrl = `https://yandex.ru/maps/?mode=routes&rtext=~${encodeURIComponent(order.pickup_address)}~${encodeURIComponent(order.delivery_address)}`;
+
                     card.innerHTML = `
-                        <h3>Заказ #${order.id}</h3>
+                        <h3 style="margin-top: 0; color: #00e5ff;">Заказ #${order.id}</h3>
+                        
                         <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
                         <p>💵 <strong>Сумма:</strong> ${order.price || 0} ₽</p>
-                        <p>📅 <strong>К какому времени:</strong> <span style="color: var(--accent);">${deadlineText}</span></p>
-                        <p>📍 <strong>Откуда:</strong> ${order.pickup_address}</p>
-                        <p>🏁 <strong>Куда:</strong> ${order.delivery_address}</p>
-                        <p>Статус: <span class="status">${order.status}</span></p>
-                        <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
-                        <p>💵 <strong>Сумма:</strong> ${order.price || 0} ₽</p>
+                        <p>📅 <strong>К какому времени:</strong> <span style="color: #00e5ff;">${deadlineText}</span></p>
+                        
+                        <div style="margin: 15px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            <p style="margin-top: 0;">📍 <strong>Откуда:</strong> ${order.pickup_address}</p>
+                            <p style="margin-bottom: 0;">🏁 <strong>Куда:</strong> ${order.delivery_address}</p>
+                        </div>
+                        
                         <p>Статус: <span class="status">${order.status}</span></p>
                         ${timeInfo}
-                        <div style="margin-top: 15px;">
-                            ${actionButton}
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <a class="btn btn-map" href="https://yandex.ru/maps/?rtext=${encodeURIComponent(order.pickup_address)}~${encodeURIComponent(order.delivery_address)}" target="_blank">🗺️ Построить маршрут (Я.Карты)</a>
+                        
+                        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                            ${order.status === 'NEW' ? `<button style="background: transparent; color: #00e5ff; border: 1px solid #00e5ff; padding: 10px; border-radius: 6px; cursor: pointer; text-transform: uppercase;" onclick="updateStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>` : ''}
+                            
+                            ${order.status === 'in_progress' ? `<button style="background: transparent; color: #10b981; border: 1px solid #10b981; padding: 10px; border-radius: 6px; cursor: pointer; text-transform: uppercase;" onclick="updateStatus(${order.id}, 'completed')">🟢 Доставлено</button>` : ''}
+                            
+                            <a href="${yandexUrl}" target="_blank" style="display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 6px; background-color: #00e5ff; color: #0a0f1e; font-weight: bold; text-transform: uppercase;">
+                                🗺 Построить маршрут
+                            </a>
                         </div>
                     `;
                     list.appendChild(card);
                 });
-            } catch (err) {
-                document.getElementById('orders-list').innerHTML = '<p style="color:red">Ошибка загрузки</p>';
+            } catch (error) {
+                console.error('Ошибка загрузки заказов:', error);
             }
         }
 
