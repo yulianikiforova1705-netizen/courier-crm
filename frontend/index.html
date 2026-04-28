@@ -405,21 +405,21 @@
                         }
                     }
 
-                   // Принудительно переводим статус в нижний регистр для точной проверки
+                   // Принудительно переводим статус в нижний регистр
                     const currentStatus = order.status.toLowerCase();
 
-                    // Умная ссылка для Яндекса
+                    // Бронебойная ссылка для мобильных устройств (поиск адреса)
                     let yandexUrl = '';
                     let routeBtnText = '';
                     
                     if (currentStatus === 'new') {
-                        // Если заказ новый — маршрут за грузом
-                        yandexUrl = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(order.pickup_address)}&rtt=auto`;
-                        routeBtnText = '📍 Маршрут за грузом';
+                        // Передаем адрес забора груза для поиска
+                        yandexUrl = `https://yandex.ru/maps/?text=${encodeURIComponent(order.pickup_address)}`;
+                        routeBtnText = '📍 Показать откуда забрать';
                     } else {
-                        // Если заказ в работе — маршрут к клиенту
-                        yandexUrl = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(order.delivery_address)}&rtt=auto`;
-                        routeBtnText = '🏁 Маршрут к клиенту';
+                        // Передаем адрес клиента для поиска
+                        yandexUrl = `https://yandex.ru/maps/?text=${encodeURIComponent(order.delivery_address)}`;
+                        routeBtnText = '🏁 Показать куда доставить';
                     }
 
                     card.innerHTML = `
@@ -447,7 +447,6 @@
                             </a>
                         </div>
                     `;
-                        
                         
                     list.appendChild(card);
                 });
