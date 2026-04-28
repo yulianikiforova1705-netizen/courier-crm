@@ -50,9 +50,10 @@ function switchTab(tab) {
     document.getElementById('accounting-view').style.display = 'none';
     document.getElementById('plan-view').style.display = 'none';
 
-    // Показываем нужный экран и загружаем данные
     if (tab === 'active' || tab === 'archive') {
         document.getElementById('orders-view').style.display = 'block';
+        // МАГИЯ: Скрываем огромную форму "Создать заказ" в Архиве!
+        document.getElementById('create-order-form').style.display = (tab === 'active') ? 'block' : 'none';
         loadOrders();
     } else if (tab === 'accounting') {
         document.getElementById('accounting-view').style.display = 'block';
@@ -63,7 +64,6 @@ function switchTab(tab) {
     }
 }
     
-
 // 📡 API
 const API_URL = 'https://courier-crm-api.onrender.com';
 
@@ -97,14 +97,6 @@ async function loadOrders() {
                 totalIncome += Number(o.price) || 0;
             }
         });
-
-        const incomeBadge = document.getElementById('income-badge');
-        if (currentTab === 'archive') {
-            incomeBadge.style.display = 'inline-block';
-            incomeBadge.innerText = `💰 Выручка: ${totalIncome} ₽`;
-        } else {
-            incomeBadge.style.display = 'none';
-        }
 
         const filteredOrders = orders.filter(order => {
             let tabMatch = false;

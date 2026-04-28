@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>TrackFlow | Powered by V-System</title>
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap" rel="stylesheet">
-    
-    <!-- ПОДКЛЮЧАЕМ НАШ НОВЫЙ ФАЙЛ СО СТИЛЯМИ -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,10 +13,8 @@
         <div class="login-card">
             <h1 class="brand-title" style="font-size: 2.2em; margin-bottom: 10px;">TrackFlow</h1>
             <p style="color: #64748b; margin-bottom: 25px; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px;">Доступ ограничен</p>
-            
             <input type="password" id="password-input" placeholder="Введите пароль">
             <button class="btn btn-map" onclick="checkPassword()">АВТОРИЗАЦИЯ</button>
-            
             <p id="login-error" style="color: var(--accent); display: none; margin-top: 15px; font-weight: 700; font-size: 0.9em;">ОШИБКА ДОСТУПА</p>
         </div>
     </div>
@@ -30,27 +24,26 @@
         <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Сменить тему">🌙</button>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-        <h2 style="margin: 0;">📦 Управление</h2>
-        <div id="income-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 5px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #10b981; display: none; margin-bottom: 10px;">
-            Выручка: 0 ₽
-        </div>
-        <div class="tabs" style="margin: 0;">
+    <!-- Управление и сетка вкладок -->
+    <div style="margin-bottom: 15px;">
+        <h2 style="margin: 0 0 15px 0;">📦 Управление</h2>
+        <div class="tabs">
             <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
             <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
             <button class="tab-btn" id="tab-accounting" onclick="switchTab('accounting')">Финансы</button>
-       <button class="tab-btn" id="tab-plan" onclick="switchTab('plan')">План дня</button>
+            <button class="tab-btn" id="tab-plan" onclick="switchTab('plan')">План дня</button>
         </div>
     </div>
 
     <!-- ЭКРАН 1: ЗАКАЗЫ -->
     <div id="orders-view">
-        <div class="card">
+        <!-- Блок создания заказа (Скрывается в архиве) -->
+        <div class="card" id="create-order-form">
             <h2>➕ Создать новый заказ</h2>
-            <input type="text" id="pickup" placeholder="Откуда забрать (например: Москва, Красная площадь, 1)">
-            <input type="text" id="delivery" placeholder="Куда доставить (например: Москва, ул. Тверская, 7)">
+            <input type="text" id="pickup" placeholder="Откуда забрать">
+            <input type="text" id="delivery" placeholder="Куда доставить">
             <input type="text" id="client" placeholder="Имя клиента">
-            <input type="number" id="price" placeholder="Стоимость доставки (₽)" style="margin-bottom: 15px;">
+            <input type="number" id="price" placeholder="Стоимость (₽)">
             <input type="datetime-local" id="deadline-input" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
             <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">Отправить в базу</button>
         </div>
@@ -64,7 +57,7 @@
         <div class="card" style="border: 1px solid var(--primary);">
             <h2 style="margin-top: 0; color: var(--primary); text-align: center;">📊 Финансовая сводка</h2>
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
-                <span>💰 Доходы (Выполненные):</span>
+                <span>💰 Доходы:</span>
                 <span id="acc-income" style="color: #10b981; font-weight: bold;">0 ₽</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
@@ -80,14 +73,25 @@
 
         <div class="card">
             <h3 style="margin-top: 0; color: var(--text-main);">➕ Добавить трату</h3>
-            <input type="text" id="expense-desc" placeholder="На что потратили? (например, Бензин, Кофе)">
+            <input type="text" id="expense-desc" placeholder="На что потратили?">
             <input type="number" id="expense-amount" placeholder="Сумма (₽)">
             <button class="btn" style="width: 100%; background: #ef4444; color: white; border: none; margin: 0;" onclick="addExpense()">Записать расход</button>
         </div>
-        
         <div id="expenses-list"></div>
     </div>
 
+    <!-- ЭКРАН 3: ПЛАН ДНЯ -->
+    <div id="plan-view" style="display: none;">
+        <div class="card" style="border: 1px solid var(--accent);">
+            <h2 style="margin-top: 0; color: var(--accent); text-align: center;">⏰ Напоминание</h2>
+            <input type="text" id="task-desc" placeholder="Что нужно сделать?">
+            <input type="datetime-local" id="task-time" style="margin-bottom: 15px;">
+            <button class="btn" style="width: 100%; background: var(--accent); color: white; border: none; margin: 0;" onclick="addTask()">Записать в план</button>
+        </div>
+        <div id="tasks-list"></div>
+    </div>
+
+    <!-- ПОДВАЛ (Теперь всегда строго внизу) -->
     <div class="app-footer">
         Powered by 
         <span style="font-weight:800; font-size: 1.1em;">
@@ -97,23 +101,8 @@
         </span> 
         V-SYSTEM
     </div>
-<!-- ЭКРАН 3: ПЛАН ДНЯ -->
-    <div id="plan-view" style="display: none;">
-        <div class="card" style="border: 1px solid var(--accent);">
-            <h2 style="margin-top: 0; color: var(--accent); text-align: center;">⏰ Добавить напоминание</h2>
-            <input type="text" id="task-desc" placeholder="Что нужно сделать? (например, Позвонить клиенту)">
-            <input type="datetime-local" id="task-time" style="margin-bottom: 15px;">
-            <button class="btn" style="width: 100%; background: var(--accent); color: white; border: none; margin: 0;" onclick="addTask()">Записать в план</button>
-        </div>
-        
-        <div id="tasks-list"></div>
-    </div>
 
-
-
-    <!-- КОНТЕЙНЕР ДЛЯ ВСПЛЫВАЮЩИХ УВЕДОМЛЕНИЙ -->
     <div id="toast-container"></div>
-    <!-- ПОДКЛЮЧАЕМ НАШ НОВЫЙ ФАЙЛ СО СКРИПТАМИ -->
     <script src="app.js"></script>
 </body>
 </html>
