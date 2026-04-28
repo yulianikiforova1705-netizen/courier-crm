@@ -313,17 +313,15 @@ setInterval(() => {
 // ЛОГИКА ПЛАНЕРА И НАПОМИНАНИЙ
 // ==========================================
 
-let notifiedTasks = new Set(); // Память: чтобы не спамить одним и тем же уведомлением
+let notifiedTasks = new Set(); // Память: чтобы не спамить
 
-// Функция показа красивого всплывающего окна + звук
 function showNotification(message) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = `🔔 <strong>Внимание!</strong><br><span style="font-size: 0.9em;">${message}</span>`;
+    toast.innerHTML = `🔔 <strong style="color: var(--accent);">Внимание!</strong><br><span style="font-size: 1em;">${message}</span>`;
     container.appendChild(toast);
     
-    // Писк при уведомлении
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
@@ -331,11 +329,10 @@ function showNotification(message) {
         osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
     } catch(e) {}
 
-    // Убираем уведомление через 6 секунд
-    setTimeout(() => toast.remove(), 6000);
+    // Увеличили время показа до 10 секунд, чтобы точно не пропустить!
+    setTimeout(() => toast.remove(), 10000);
 }
 
-// Загрузка задач
 async function loadTasks() {
     try {
         const response = await fetch(`${API_URL}/api/tasks`);
@@ -352,8 +349,11 @@ async function loadTasks() {
             const isDone = t.is_completed ? 'task-done' : '';
             const btn = t.is_completed ? '' : `<button class="btn btn-complete" style="padding: 6px 12px; margin: 0;" onclick="completeTask(${t.id})">✔</button>`;
             
-            // Красивая дата
-            const timeObj = new Date(t.remind_at);
+            // 🕒 ЧИНИМ ЧТЕНИЕ ВРЕМЕНИ ИЗ БАЗЫ (Приклеиваем 'Z')
+            let safeDateStr = t.remind_at;
+            if (!safeDateStr.endsWith('Z')) safeDateStr += 'Z';
+            
+            const timeObj = new Date(safeDateStr);
             const timeStr = timeObj.toLocaleString('ru-RU', { hour: '2-digit', minute:'2-digit', day: 'numeric', month: 'short' });
 
             const item = document.createElement('div');
@@ -372,20 +372,18 @@ async function loadTasks() {
     }
 }
 
-// Добавление задачи
 async function addTask() {
     const desc = document.getElementById('task-desc').value;
     const time = document.getElementById('task-time').value;
 
     if (!desc || !time) return alert('Заполни описание и время!');
 
-    // 🕒 МАГИЯ ВРЕМЕНИ ДЛЯ ЗАДАЧ
     const safeTime = new Date(time).toISOString();
 
     await fetch(`${API_URL}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc, remind_at: safeTime }) // <-- Отправляем исправленное время
+        body: JSON.stringify({ description: desc, remind_at: safeTime })
     });
 
     document.getElementById('task-desc').value = '';
@@ -393,13 +391,12 @@ async function addTask() {
     loadTasks();
 }
 
-// Завершение задачи
 async function completeTask(id) {
     await fetch(`${API_URL}/api/tasks/${id}/complete`, { method: 'PUT' });
     loadTasks();
 }
 
-// Фоновый сканер напоминаний (запускается каждые 10 секунд)
+// Фоновый сканер напоминаний (каждые 10 секунд)
 setInterval(async () => {
     if (localStorage.getItem('trackflow_auth') !== 'true') return;
     
@@ -409,11 +406,15 @@ setInterval(async () => {
         const now = new Date();
 
         tasks.forEach(t => {
-            const taskTime = new Date(t.remind_at);
-            // Если задача не выполнена, время настало (или прошло), и мы еще о ней не напоминали
+            // 🕒 И ЗДЕСЬ ЧИНИМ ЧТЕНИЕ ВРЕМЕНИ ДЛЯ СКАНЕРА
+            let safeDateStr = t.remind_at;
+            if (!safeDateStr.endsWith('Z')) safeDateStr += 'Z';
+            
+            const taskTime = new Date(safeDateStr);
+            
             if (!t.is_completed && taskTime <= now && !notifiedTasks.has(t.id)) {
                 showNotification(`Время пришло: <b>${t.description}</b>`);
-                notifiedTasks.add(t.id); // Запоминаем, чтобы не дублировать
+                notifiedTasks.add(t.id);
             }
         });
     } catch(e) {}
