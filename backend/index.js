@@ -207,6 +207,43 @@ app.put('/api/tasks/:id/complete', async (req, res) => {
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
+// ==========================================
+// 🤖 TELEGRAM-СКАНЕР НАПОМИНАНИЙ
+// ==========================================
+
+// Вставь свои цифры от команды /myid в кавычки ниже!
+const ADMIN_CHAT_ID = '765319326'; 
+
+const notifiedTasksTg = new Set(); // Память сервера, чтобы бот не спамил
+
+setInterval(async () => {
+    try {
+        // Берем из базы только НЕвыполненные задачи
+        const result = await db.query('SELECT * FROM tasks WHERE is_completed = FALSE');
+        const now = new Date();
+
+        result.rows.forEach(t => {
+            const taskTime = new Date(t.remind_at);
+            
+            // Если время настало, и мы еще не писали об этом в ТГ:
+            // (А также проверяем, что задача просрочена не более чем на 2 часа, чтобы при перезагрузке сервера бот не прислал тебе уведомления за прошлый год)
+            if (taskTime <= now && (now - taskTime) < 2 * 60 * 60 * 1000 && !notifiedTasksTg.has(t.id)) {
+                
+                // Отправляем красивое сообщение
+                bot.telegram.sendMessage(
+                    ADMIN_CHAT_ID, 
+                    `⏰ <b>ПЛАН ДНЯ!</b>\n\n📌 <i>${t.description}</i>`, 
+                    { parse_mode: 'HTML' }
+                ).catch(err => console.error('Ошибка отправки в Telegram:', err));
+                
+                // Запоминаем, что уже отправили
+                notifiedTasksTg.add(t.id);
+            }
+        });
+    } catch (err) {
+        console.error('Ошибка сканера задач Telegram:', err);
+    }
+}, 10000); // Сервер проверяет планы каждые 10 секунд
 // Запуск сервера
 app.listen(PORT, () => {
     console.log(`Сервер работает на порту ${PORT}`);
