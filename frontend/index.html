@@ -228,78 +228,77 @@
     </style>
 </head>
 <body>
-    <div class="header" style="text-align: center; margin-bottom: 20px;">
-        <div class="logo" style="font-size: 3rem;">📦</div>
-        <h1 style="margin: 10px 0; color: #fff;">TrackFlow</h1>
-    </div>
-
-    <!-- Вкладки (снова красивые!) -->
-    <div class="tabs">
-        <button class="tab active" id="tab-active" onclick="switchTab('active')">АКТИВНЫЕ</button>
-        <button class="tab" id="tab-archive" onclick="switchTab('archive')">АРХИВ</button>
-        <button class="tab" id="tab-accounting" onclick="switchTab('accounting')">ФИНАНСЫ</button>
-    </div>
-
-    <!-- === ЭКРАН 1: РАБОТА С ЗАКАЗАМИ === -->
-    <div id="orders-view">
-        
-        <!-- Единственная форма создания заказа -->
-        <div class="form-group" style="margin-bottom: 20px;">
-            <input type="text" id="pickup" placeholder="Откуда забрать (например: Москва, ул. Новаторов 4)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-            <input type="text" id="delivery" placeholder="Куда доставить (например: Москва, ул. Саларьевская 11)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-            <input type="text" id="client" placeholder="Имя клиента" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-            <input type="number" id="price" placeholder="Стоимость доставки (₽)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-            <input type="datetime-local" id="deadline-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-            <button onclick="createOrder()" style="width: 100%; padding: 12px; background-color: #00e5ff; color: #0a0f1e; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">➕ СОЗДАТЬ ЗАКАЗ</button>
-        </div>
-
-        <!-- Умный поиск -->
-        <div style="margin-bottom: 20px;">
-            <input type="text" id="search-input" placeholder="🔍 Поиск по клиенту или адресу..." onkeyup="loadOrders()" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-        </div>
-        
-        <!-- Бейдж выручки (для архива) -->
-        <div id="income-badge" style="display: none; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px; font-weight: bold;"></div>
-        
-        <!-- Список заказов -->
-        <div id="orders-list"></div>
-    </div>
-
-    <!-- === ЭКРАН 2: БУХГАЛТЕРИЯ === -->
-    <div id="accounting-view" style="display: none;">
-        
-        <!-- Сводка -->
-        <div class="card" style="background: rgba(255,255,255,0.05); border: 1px solid #00e5ff; margin-bottom: 20px; padding: 15px; border-radius: 8px;">
-            <h2 style="margin-top: 0; color: #00e5ff; text-align: center;">📊 Финансовая сводка</h2>
-            <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
-                <span>💰 Доходы:</span>
-                <span id="acc-income" style="color: #10b981; font-weight: bold;">0 ₽</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
-                <span>📉 Расходы:</span>
-                <span id="acc-expense" style="color: #ef4444; font-weight: bold;">0 ₽</span>
-            </div>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 15px 0;">
-            <div style="display: flex; justify-content: space-between; font-size: 1.3em;">
-                <span>💎 Чистая прибыль:</span>
-                <span id="acc-profit" style="color: #00e5ff; font-weight: bold;">0 ₽</span>
+    <div class="container">
+        <!-- Шапка: Заказы + Вкладки (вернули теги div, чтобы стили снова заработали!) -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #fff; font-size: 1.5rem;">📦 Заказы</h2>
+            <div class="tabs" style="display: flex; gap: 10px;">
+                <div class="tab active" id="tab-active" onclick="switchTab('active')">АКТИВНЫЕ</div>
+                <div class="tab" id="tab-archive" onclick="switchTab('archive')">АРХИВ</div>
+                <div class="tab" id="tab-accounting" onclick="switchTab('accounting')">ФИНАНСЫ</div>
             </div>
         </div>
 
-        <!-- Добавление расхода -->
-        <div class="form-group" style="margin-bottom: 20px;">
-            <input type="text" id="expense-desc" placeholder="На что потратили? (например, Бензин)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-            <input type="number" id="expense-amount" placeholder="Сумма (₽)" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box;">
-            <button onclick="addExpense()" style="width: 100%; padding: 12px; background-color: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">➖ ДОБАВИТЬ РАСХОД</button>
+        <!-- === ЭКРАН 1: РАБОТА С ЗАКАЗАМИ === -->
+        <div id="orders-view">
+            
+            <!-- Умный поиск (Вернули правильную строку на место!) -->
+            <div style="position: relative; margin-bottom: 20px;">
+                <span style="position: absolute; left: 12px; top: 12px; opacity: 0.5;">🔍</span>
+                <input type="text" id="search-input" placeholder="Поиск по клиенту или адресу..." onkeyup="loadOrders()" style="width: 100%; padding: 12px 12px 12px 35px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box; font-family: inherit;">
+            </div>
+
+            <!-- Форма создания заказа -->
+            <div class="form-group" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
+                <input type="text" id="pickup" placeholder="Откуда забрать" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
+                <input type="text" id="delivery" placeholder="Куда доставить" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
+                <input type="text" id="client" placeholder="Имя клиента" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
+                <input type="number" id="price" placeholder="Стоимость (₽)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
+                <input type="datetime-local" id="deadline-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box; color-scheme: dark;">
+                <button onclick="createOrder()" style="width: 100%; padding: 12px; background-color: #00e5ff; color: #0a0f1e; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase;">➕ Создать заказ</button>
+            </div>
+            
+            <!-- Бейдж выручки -->
+            <div id="income-badge" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px; font-weight: bold;"></div>
+            
+            <!-- Список заказов -->
+            <div id="orders-list"></div>
         </div>
-        
-        <!-- Список расходов -->
-        <div id="expenses-list"></div>
+
+        <!-- === ЭКРАН 2: БУХГАЛТЕРИЯ === -->
+        <div id="accounting-view" style="display: none;">
+            <!-- Сводка -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid #00e5ff; margin-bottom: 20px; padding: 15px; border-radius: 8px;">
+                <h2 style="margin-top: 0; color: #00e5ff; text-align: center; font-size: 1.3rem;">📊 Финансовая сводка</h2>
+                <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
+                    <span>💰 Доходы:</span>
+                    <span id="acc-income" style="color: #10b981; font-weight: bold;">0 ₽</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
+                    <span>📉 Расходы:</span>
+                    <span id="acc-expense" style="color: #ef4444; font-weight: bold;">0 ₽</span>
+                </div>
+                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.3em;">
+                    <span>💎 Чистая прибыль:</span>
+                    <span id="acc-profit" style="color: #00e5ff; font-weight: bold;">0 ₽</span>
+                </div>
+            </div>
+
+            <!-- Добавление расхода -->
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="expense-desc" placeholder="На что потратили? (например, Бензин)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
+                <input type="number" id="expense-amount" placeholder="Сумма (₽)" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
+                <button onclick="addExpense()" style="width: 100%; padding: 12px; background-color: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase;">➖ Добавить расход</button>
+            </div>
+            
+            <div id="expenses-list"></div>
+        </div>
     </div>
 
-    <!-- Подвал строго по центру -->
+    <!-- Подвал (тот самый, с правильным тускло-серым цветом) -->
     <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
-        <p style="color: rgba(255,255,255,0.5); font-size: 0.8rem; letter-spacing: 1px;">POWERED BY <span style="color: #00e5ff; font-weight: bold;">[ V ]</span> V-SYSTEM</p>
+        <p style="color: rgba(255,255,255,0.3); font-size: 0.75rem; letter-spacing: 2px; margin: 0;">POWERED BY <span style="color: #00e5ff; font-weight: bold;">[ V ]</span> V-SYSTEM</p>
     </div>
     <script>
         // 🌓 Логика темы
