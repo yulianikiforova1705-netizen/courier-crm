@@ -16,7 +16,9 @@ db.query(`
         amount INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-        // Автоматическое создание таблицы задач (План дня)
+`).catch(console.error);
+
+// Автоматическое создание таблицы задач (План дня)
 db.query(`
     CREATE TABLE IF NOT EXISTS tasks (
         id SERIAL PRIMARY KEY,
