@@ -198,9 +198,10 @@ async function createOrder() {
 
     if (!pickup || !delivery || !client) return alert('Заполни все поля!');
 
-    // 🕒 МАГИЯ ВРЕМЕНИ: Переводим локальное время в абсолютный международный формат (ISO)
+    // Форматируем время заказа
     const safeDeadline = deadlineVal ? new Date(deadlineVal).toISOString() : null;
 
+    // 1. Отправляем заказ в базу заказов
     await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -208,21 +209,38 @@ async function createOrder() {
             pickup_address: pickup, 
             delivery_address: delivery, 
             client_name: client, 
-            deadline: safeDeadline, // <-- Отправляем исправленное время
+            deadline: safeDeadline,
             client_phone: "Не указан",
             cargo_details: "Обычная доставка",
             price: price || 0
         })
     });
 
+    // 2. 🪄 УМНАЯ ИНТЕГРАЦИЯ: Если указано время, сразу создаем задачу в Планере!
+    if (safeDeadline) {
+        const autoTaskDesc = `🚚 Доставить заказ: ${client} (${delivery})`;
+        
+        await fetch(`${API_URL}/api/tasks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                description: autoTaskDesc, 
+                remind_at: safeDeadline 
+            })
+        });
+    }
+
+    // Очищаем форму
     document.getElementById('pickup').value = '';
     document.getElementById('delivery').value = '';
     document.getElementById('client').value = '';
     document.getElementById('price').value = '';
     document.getElementById('deadline-input').value = '';
+    
+    // Обновляем списки на экране
     loadOrders();
+    loadTasks(); // Обновляем и планер в фоне тоже
 }
-
 // ==========================================
 // ЛОГИКА ФИНАНСОВ (БУХГАЛТЕРИЯ)
 // ==========================================
