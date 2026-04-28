@@ -38,28 +38,25 @@ function checkPassword() {
 
 // 📑 Обновленная логика вкладок
 let currentTab = 'active';
-
 function switchTab(tab) {
     currentTab = tab;
     
-    // Сбрасываем все стили
-    document.getElementById('tab-active').classList.remove('active');
-    document.getElementById('tab-archive').classList.remove('active');
-    document.getElementById('tab-accounting').classList.remove('active');
-    
-    // Подсвечиваем активную
+    // Сбрасываем стили со всех кнопок
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
 
-    // Переключаем экраны
-    if (tab === 'accounting') {
-        document.getElementById('orders-view').style.display = 'none';
-        document.getElementById('accounting-view').style.display = 'block';
-        loadAccounting();
-    } else {
-        document.getElementById('orders-view').style.display = 'block';
-        document.getElementById('accounting-view').style.display = 'none';
-        loadOrders();
-    }
+    // Скрываем все экраны
+    document.getElementById('orders-view').style.display = 'none';
+    document.getElementById('accounting-view').style.display = 'none';
+    document.getElementById('plan-view').style.display = 'none';
+
+    // Показываем нужный экран
+    document.getElementById(`${tab}-view`).style.display = 'block';
+
+    // Загружаем нужные данные
+    if (tab === 'accounting') loadAccounting();
+    else if (tab === 'plan') loadTasks();
+    else loadOrders();
 }
 
 // 📡 API
@@ -312,3 +309,109 @@ setInterval(() => {
         }
     }
 }, 3000);
+// ==========================================
+// ЛОГИКА ПЛАНЕРА И НАПОМИНАНИЙ
+// ==========================================
+
+let notifiedTasks = new Set(); // Память: чтобы не спамить одним и тем же уведомлением
+
+// Функция показа красивого всплывающего окна + звук
+function showNotification(message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `🔔 <strong>Внимание!</strong><br><span style="font-size: 0.9em;">${message}</span>`;
+    container.appendChild(toast);
+    
+    // Писк при уведомлении
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
+    } catch(e) {}
+
+    // Убираем уведомление через 6 секунд
+    setTimeout(() => toast.remove(), 6000);
+}
+
+// Загрузка задач
+async function loadTasks() {
+    try {
+        const response = await fetch(`${API_URL}/api/tasks`);
+        const tasks = await response.json();
+        const list = document.getElementById('tasks-list');
+        list.innerHTML = '';
+
+        if (tasks.length === 0) {
+            list.innerHTML = '<p style="color: #64748b; text-align: center;">План чист. Можно отдыхать!</p>';
+            return;
+        }
+
+        tasks.forEach(t => {
+            const isDone = t.is_completed ? 'task-done' : '';
+            const btn = t.is_completed ? '' : `<button class="btn btn-complete" style="padding: 6px 12px; margin: 0;" onclick="completeTask(${t.id})">✔</button>`;
+            
+            // Красивая дата
+            const timeObj = new Date(t.remind_at);
+            const timeStr = timeObj.toLocaleString('ru-RU', { hour: '2-digit', minute:'2-digit', day: 'numeric', month: 'short' });
+
+            const item = document.createElement('div');
+            item.className = `task-item ${isDone}`;
+            item.innerHTML = `
+                <div>
+                    <strong style="color: var(--primary); font-size: 1.1em;">${timeStr}</strong><br>
+                    <span>${t.description}</span>
+                </div>
+                <div>${btn}</div>
+            `;
+            list.appendChild(item);
+        });
+    } catch (error) {
+        console.error('Ошибка загрузки задач', error);
+    }
+}
+
+// Добавление задачи
+async function addTask() {
+    const desc = document.getElementById('task-desc').value;
+    const time = document.getElementById('task-time').value;
+
+    if (!desc || !time) return alert('Заполни описание и время!');
+
+    await fetch(`${API_URL}/api/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc, remind_at: time })
+    });
+
+    document.getElementById('task-desc').value = '';
+    document.getElementById('task-time').value = '';
+    loadTasks();
+}
+
+// Завершение задачи
+async function completeTask(id) {
+    await fetch(`${API_URL}/api/tasks/${id}/complete`, { method: 'PUT' });
+    loadTasks();
+}
+
+// Фоновый сканер напоминаний (запускается каждые 10 секунд)
+setInterval(async () => {
+    if (localStorage.getItem('trackflow_auth') !== 'true') return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/tasks`);
+        const tasks = await response.json();
+        const now = new Date();
+
+        tasks.forEach(t => {
+            const taskTime = new Date(t.remind_at);
+            // Если задача не выполнена, время настало (или прошло), и мы еще о ней не напоминали
+            if (!t.is_completed && taskTime <= now && !notifiedTasks.has(t.id)) {
+                showNotification(`Время пришло: <b>${t.description}</b>`);
+                notifiedTasks.add(t.id); // Запоминаем, чтобы не дублировать
+            }
+        });
+    } catch(e) {}
+}, 10000);

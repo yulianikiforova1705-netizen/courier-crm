@@ -216,3 +216,39 @@ input:focus {
     letter-spacing: 1.5px;
     font-weight: 600;
 }
+/* 🔔 Уведомления (Всплывающие Toast) */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10000;
+}
+.toast {
+    background: var(--card-bg);
+    border-left: 5px solid var(--accent);
+    color: var(--text-main);
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    font-weight: 600;
+    animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Стили для задач */
+.task-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(100, 116, 139, 0.05);
+    padding: 15px; border-radius: 8px; margin-bottom: 10px;
+    border: 1px solid var(--border);
+}
+.task-done {
+    opacity: 0.5;
+    text-decoration: line-through;
+}

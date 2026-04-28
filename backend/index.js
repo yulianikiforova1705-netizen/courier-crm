@@ -16,6 +16,14 @@ db.query(`
         amount INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
+        // Автоматическое создание таблицы задач (План дня)
+db.query(`
+    CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        description VARCHAR(255) NOT NULL,
+        remind_at TIMESTAMP NOT NULL,
+        is_completed BOOLEAN DEFAULT FALSE
+    )
 `).catch(console.error);
 const bot = require('./bot'); // Подключаем нашего Telegram-бота
 
@@ -158,6 +166,42 @@ app.post('/api/expenses', async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Ошибка добавления расхода:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+// ================= ПЛАН ДНЯ И НАПОМИНАНИЯ =================
+
+// Получить все задачи
+app.get('/api/tasks', async (req, res) => {
+    try {
+        const result = await db.query('SELECT * FROM tasks ORDER BY remind_at ASC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Добавить задачу
+app.post('/api/tasks', async (req, res) => {
+    try {
+        const { description, remind_at } = req.body;
+        const result = await db.query(
+            'INSERT INTO tasks (description, remind_at) VALUES ($1, $2) RETURNING *',
+            [description, remind_at]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Выполнить задачу (зачеркнуть)
+app.put('/api/tasks/:id/complete', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query('UPDATE tasks SET is_completed = TRUE WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });

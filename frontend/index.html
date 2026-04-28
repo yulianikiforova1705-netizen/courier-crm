@@ -39,6 +39,7 @@
             <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
             <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
             <button class="tab-btn" id="tab-accounting" onclick="switchTab('accounting')">Финансы</button>
+       <button class="tab-btn" id="tab-plan" onclick="switchTab('plan')">План дня</button>
         </div>
     </div>
 
@@ -96,7 +97,22 @@
         </span> 
         V-SYSTEM
     </div>
+<!-- ЭКРАН 3: ПЛАН ДНЯ -->
+    <div id="plan-view" style="display: none;">
+        <div class="card" style="border: 1px solid var(--accent);">
+            <h2 style="margin-top: 0; color: var(--accent); text-align: center;">⏰ Добавить напоминание</h2>
+            <input type="text" id="task-desc" placeholder="Что нужно сделать? (например, Позвонить клиенту)">
+            <input type="datetime-local" id="task-time" style="margin-bottom: 15px;">
+            <button class="btn" style="width: 100%; background: var(--accent); color: white; border: none; margin: 0;" onclick="addTask()">Записать в план</button>
+        </div>
+        
+        <div id="tasks-list"></div>
+    </div>
 
+    <div class="app-footer">... твой подвал ...</div>
+
+    <!-- КОНТЕЙНЕР ДЛЯ ВСПЛЫВАЮЩИХ УВЕДОМЛЕНИЙ -->
+    <div id="toast-container"></div>
     <!-- ПОДКЛЮЧАЕМ НАШ НОВЫЙ ФАЙЛ СО СКРИПТАМИ -->
     <script src="app.js"></script>
 </body>
