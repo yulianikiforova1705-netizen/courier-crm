@@ -1,0 +1,218 @@
+/* 🎨 Премиальная палитра V-SYSTEM Core */
+:root {
+    --primary: #2563eb; 
+    --accent: #f97316;
+    --success: #059669;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --border: rgba(0, 0, 0, 0.05);
+}
+
+/* 🌙 Темная тема (Cyber/Tech Style) */
+body.dark-theme {
+    --bg: #0b1121;
+    --card-bg: #151e32;
+    --text-main: #e2e8f0;
+    --primary: #00e5ff; /* Неоновый циан */
+    --accent: #ff6b6b;  /* Коралловый */
+    --border: rgba(0, 229, 255, 0.15);
+}
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background: var(--bg); 
+    color: var(--text-main); 
+    padding: 20px; 
+    max-width: 800px; 
+    margin: 0 auto; 
+    line-height: 1.6;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* 🏢 Шапка приложения */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.brand-title { 
+    margin: 0; 
+    font-family: 'Montserrat', sans-serif; 
+    font-size: 2.8em; 
+    color: var(--primary); 
+    font-weight: 800; 
+    letter-spacing: -1px; 
+    text-transform: uppercase;
+}
+
+.theme-toggle {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* 📑 Вкладки */
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+.tab-btn {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+}
+.tab-btn.active {
+    color: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+/* Карточки */
+.card, .order-card { 
+    background: var(--card-bg); 
+    border-radius: 12px; 
+    padding: 25px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); 
+    border: 1px solid var(--border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark-theme .order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+.order-card h3 { margin-top: 0; color: var(--primary); font-size: 1.3em; }
+
+/* Статусы */
+.status { 
+    display: inline-block; 
+    padding: 4px 12px; 
+    border-radius: 6px; 
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--text-main); 
+    font-weight: 600; 
+    font-size: 0.85em; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid var(--border);
+}
+
+/* 🎛 Кнопки */
+.btn { 
+    background: transparent;
+    color: var(--primary); 
+    border: 1px solid var(--primary);
+    padding: 12px 20px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 0.9em; 
+    font-weight: 700; 
+    margin-right: 8px; 
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn:hover { 
+    background: var(--primary); 
+    color: var(--bg); 
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.3); 
+}
+
+.btn-complete { border-color: #10b981; color: #10b981; }
+.btn-complete:hover { background: #10b981; color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+
+.btn-map { 
+    background: var(--primary); 
+    color: var(--bg); 
+    border: none; 
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    white-space: normal;
+}
+
+.btn-map:hover { background: var(--primary); filter: brightness(110%); }
+
+/* Поля ввода */
+input { 
+    width: 100%; 
+    padding: 15px; 
+    margin-bottom: 15px; 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    box-sizing: border-box; 
+    font-family: inherit; 
+    font-size: 1em; 
+    transition: all 0.2s ease;
+    background: var(--card-bg);
+    color: var(--text-main);
+}
+
+input:focus { 
+    outline: none; 
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+}
+
+/* 🔐 Экран авторизации */
+.login-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #0b1121;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+}
+.login-card {
+    background: #151e32;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    box-shadow: 0 0 40px rgba(0, 229, 255, 0.1);
+    width: 90%;
+    max-width: 400px;
+}
+.login-card input {
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+/* Подвал */
+.app-footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.8em;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
