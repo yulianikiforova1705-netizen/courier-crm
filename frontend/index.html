@@ -405,8 +405,19 @@
                         }
                     }
 
-                    // Магическая ссылка для Яндекса: mode=routes включает построение маршрута
-                    const yandexUrl = `https://yandex.ru/maps/?mode=routes&rtext=~${encodeURIComponent(order.pickup_address)}~${encodeURIComponent(order.delivery_address)}`;
+                    // Умная ссылка для Яндекса: зависит от статуса заказа
+                    let yandexUrl = '';
+                    let routeBtnText = '';
+                    
+                    if (order.status === 'NEW') {
+                        // Если заказ новый — маршрут от нас до точки забора
+                        yandexUrl = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(order.pickup_address)}&rtt=auto`;
+                        routeBtnText = '📍 Маршрут за грузом';
+                    } else {
+                        // Если заказ в работе — маршрут от нас до клиента
+                        yandexUrl = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(order.delivery_address)}&rtt=auto`;
+                        routeBtnText = '🏁 Маршрут к клиенту';
+                    }
 
                     card.innerHTML = `
                         <h3 style="margin-top: 0; color: #00e5ff;">Заказ #${order.id}</h3>
@@ -429,10 +440,12 @@
                             ${order.status === 'in_progress' ? `<button style="background: transparent; color: #10b981; border: 1px solid #10b981; padding: 10px; border-radius: 6px; cursor: pointer; text-transform: uppercase;" onclick="updateStatus(${order.id}, 'completed')">🟢 Доставлено</button>` : ''}
                             
                             <a href="${yandexUrl}" target="_blank" style="display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 6px; background-color: #00e5ff; color: #0a0f1e; font-weight: bold; text-transform: uppercase;">
-                                🗺 Построить маршрут
+                                ${routeBtnText}
                             </a>
                         </div>
                     `;
+                        
+                        
                     list.appendChild(card);
                 });
             } catch (error) {
