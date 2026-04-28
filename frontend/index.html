@@ -229,20 +229,26 @@
 </head>
 <body>
     <div class="container">
-        <!-- Шапка: Заказы + Вкладки (вернули теги div, чтобы стили снова заработали!) -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: #fff; font-size: 1.5rem;">📦 Заказы</h2>
-            <div class="tabs" style="display: flex; gap: 10px;">
-                <div class="tab active" id="tab-active" onclick="switchTab('active')">АКТИВНЫЕ</div>
-                <div class="tab" id="tab-archive" onclick="switchTab('archive')">АРХИВ</div>
-                <div class="tab" id="tab-accounting" onclick="switchTab('accounting')">ФИНАНСЫ</div>
+        <!-- Шапка с кнопкой темы -->
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="logo" style="font-size: 2rem;">📦</div>
+                <h1 style="margin: 0; color: #fff; font-size: 1.5rem;">TrackFlow</h1>
             </div>
+            <!-- Вернули кнопку смены темы! -->
+            <button onclick="document.body.classList.toggle('light-theme')" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 1.2rem;" title="Сменить тему">🌓</button>
+        </div>
+
+        <!-- Вкладки (вернули тег button, чтобы твои стили снова работали!) -->
+        <div class="tabs">
+            <button class="tab active" id="tab-active" onclick="switchTab('active')">АКТИВНЫЕ</button>
+            <button class="tab" id="tab-archive" onclick="switchTab('archive')">АРХИВ</button>
+            <button class="tab" id="tab-accounting" onclick="switchTab('accounting')">ФИНАНСЫ</button>
         </div>
 
         <!-- === ЭКРАН 1: РАБОТА С ЗАКАЗАМИ === -->
         <div id="orders-view">
-            
-            <!-- Умный поиск (Вернули правильную строку на место!) -->
+            <!-- Умный поиск -->
             <div style="position: relative; margin-bottom: 20px;">
                 <span style="position: absolute; left: 12px; top: 12px; opacity: 0.5;">🔍</span>
                 <input type="text" id="search-input" placeholder="Поиск по клиенту или адресу..." onkeyup="loadOrders()" style="width: 100%; padding: 12px 12px 12px 35px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #fff; box-sizing: border-box; font-family: inherit;">
@@ -258,16 +264,13 @@
                 <button onclick="createOrder()" style="width: 100%; padding: 12px; background-color: #00e5ff; color: #0a0f1e; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase;">➕ Создать заказ</button>
             </div>
             
-            <!-- Бейдж выручки -->
             <div id="income-badge" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #10b981; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px; font-weight: bold;"></div>
             
-            <!-- Список заказов -->
             <div id="orders-list"></div>
         </div>
 
         <!-- === ЭКРАН 2: БУХГАЛТЕРИЯ === -->
         <div id="accounting-view" style="display: none;">
-            <!-- Сводка -->
             <div style="background: rgba(255,255,255,0.02); border: 1px solid #00e5ff; margin-bottom: 20px; padding: 15px; border-radius: 8px;">
                 <h2 style="margin-top: 0; color: #00e5ff; text-align: center; font-size: 1.3rem;">📊 Финансовая сводка</h2>
                 <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
@@ -285,20 +288,18 @@
                 </div>
             </div>
 
-            <!-- Добавление расхода -->
             <div style="margin-bottom: 20px;">
                 <input type="text" id="expense-desc" placeholder="На что потратили? (например, Бензин)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
                 <input type="number" id="expense-amount" placeholder="Сумма (₽)" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; box-sizing: border-box;">
                 <button onclick="addExpense()" style="width: 100%; padding: 12px; background-color: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase;">➖ Добавить расход</button>
             </div>
-            
             <div id="expenses-list"></div>
         </div>
-    </div>
-
-    <!-- Подвал (тот самый, с правильным тускло-серым цветом) -->
-    <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
-        <p style="color: rgba(255,255,255,0.3); font-size: 0.75rem; letter-spacing: 2px; margin: 0;">POWERED BY <span style="color: #00e5ff; font-weight: bold;">[ V ]</span> V-SYSTEM</p>
+        
+        <!-- Подвал с ПРАВИЛЬНЫМ ЦВЕТОМ (#64748b - красивый стальной оттенок) -->
+        <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+            <p style="color: #64748b; font-size: 0.75rem; letter-spacing: 2px; margin: 0; font-weight: 600;">POWERED BY <span style="color: #00e5ff; font-weight: bold;">[ V ]</span> V-SYSTEM</p>
+        </div>
     </div>
     <script>
         // 🌓 Логика темы
@@ -358,9 +359,9 @@ function switchTab(tab) {
                 loadOrders(); // Показываем заказы
             }
         }
-        // 📡 ВНИМАНИЕ: Проверь, чтобы тут стояла твоя ссылка на Render!
-        const API_URL = 'https://courier-crm-api.onrender.com';
-
+        const API_URL = 'https://courier-crm-api.onrender.com'; // Твоя ссылка
+        let currentTab = 'active'; // <-- ВСТАВИТЬ СЮДА
+        
         async function loadOrders() {
             try {
                 const response = await fetch(`${API_URL}/api/orders`);
