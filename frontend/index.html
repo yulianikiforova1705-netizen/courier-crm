@@ -258,15 +258,57 @@
         <div id="income-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 5px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #10b981; display: none; margin-bottom: 10px;">
             Выручка: 0 ₽
         </div>
-        <div class="tabs" style="margin: 0;">
-            <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">Активные</button>
-            <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">Архив</button>
-        </div>
+        <div class="tabs">
+        <button class="tab active" id="tab-active" onclick="switchTab('active')">АКТИВНЫЕ</button>
+        <button class="tab" id="tab-archive" onclick="switchTab('archive')">АРХИВ</button>
+        <button class="tab" id="tab-accounting" onclick="switchTab('accounting')">ФИНАНСЫ</button>
     </div>
-    
-    <input type="text" id="search-input" placeholder="🔍 Поиск по клиенту или адресу..." oninput="loadOrders()" style="margin-bottom: 25px;">
 
-    <div id="orders-list">Загрузка...</div>
+    <!-- === ЭКРАН 1: РАБОТА С ЗАКАЗАМИ === -->
+    <div id="orders-view">
+        <input type="text" id="search-input" placeholder="Поиск по клиенту или адресу..." onkeyup="loadOrders()" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+        
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="pickup" placeholder="Откуда забрать" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+            <input type="text" id="delivery" placeholder="Куда доставить" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+            <input type="text" id="client" placeholder="Имя клиента" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+            <input type="number" id="price" placeholder="Стоимость доставки (₽)" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+            <input type="datetime-local" id="deadline-input" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+            <button onclick="createOrder()" style="width: 100%; padding: 12px; background-color: #00e5ff; color: #0a0f1e; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">➕ СОЗДАТЬ ЗАКАЗ</button>
+        </div>
+        
+        <div id="income-badge" style="display: none; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #10b981; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px; font-weight: bold;"></div>
+        
+        <div id="orders-list"></div>
+    </div>
+
+    <!-- === ЭКРАН 2: БУХГАЛТЕРИЯ === -->
+    <div id="accounting-view" style="display: none;">
+        <div class="card" style="background: rgba(255,255,255,0.05); border: 1px solid #00e5ff; margin-bottom: 20px;">
+            <h2 style="margin-top: 0; color: #00e5ff; text-align: center;">📊 Финансовая сводка</h2>
+            <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
+                <span>💰 Доходы:</span>
+                <span id="acc-income" style="color: #10b981; font-weight: bold;">0 ₽</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
+                <span>📉 Расходы:</span>
+                <span id="acc-expense" style="color: #ef4444; font-weight: bold;">0 ₽</span>
+            </div>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 15px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 1.3em;">
+                <span>💎 Чистая прибыль:</span>
+                <span id="acc-profit" style="color: #00e5ff; font-weight: bold;">0 ₽</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="expense-desc" placeholder="На что потратили? (например, Бензин)" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+            <input type="number" id="expense-amount" placeholder="Сумма (₽)" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
+            <button onclick="addExpense()" style="width: 100%; padding: 12px; background-color: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">➖ ДОБАВИТЬ РАСХОД</button>
+        </div>
+        
+        <div id="expenses-list"></div>
+    </div>
 
     <div class="app-footer">
         Powered by 
@@ -317,12 +359,24 @@
         }
 // 📑 Логика вкладок
         let currentTab = 'active';
-
-        function switchTab(tab) {
+function switchTab(tab) {
             currentTab = tab;
-            document.getElementById('tab-active').classList.toggle('active', tab === 'active');
-            document.getElementById('tab-archive').classList.toggle('active', tab === 'archive');
-            loadOrders(); // Перезагружаем список при смене вкладки
+            
+            // Убираем подсветку со всех кнопок
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            // Подсвечиваем нажатую
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            // Переключаем экраны
+            if (tab === 'accounting') {
+                document.getElementById('orders-view').style.display = 'none';
+                document.getElementById('accounting-view').style.display = 'block';
+                loadAccounting(); // Считаем деньги!
+            } else {
+                document.getElementById('orders-view').style.display = 'block';
+                document.getElementById('accounting-view').style.display = 'none';
+                loadOrders(); // Показываем заказы
+            }
         }
         // 📡 ВНИМАНИЕ: Проверь, чтобы тут стояла твоя ссылка на Render!
         const API_URL = 'https://courier-crm-api.onrender.com';
@@ -501,6 +555,77 @@
                 loadOrders();
             }
         }, 3000);
+        async function loadAccounting() {
+            try {
+                // Скачиваем доходы (заказы)
+                const resOrders = await fetch(`${API_URL}/api/orders`);
+                const orders = await resOrders.json();
+                
+                // Скачиваем расходы
+                const resExp = await fetch(`${API_URL}/api/expenses`);
+                const expenses = await resExp.json();
+
+                // Считаем доходы (плюсуем только доставленные заказы)
+                let totalIncome = 0;
+                orders.forEach(o => {
+                    if (o.status === 'completed') totalIncome += Number(o.price) || 0;
+                });
+
+                // Считаем расходы
+                let totalExpense = 0;
+                expenses.forEach(e => {
+                    totalExpense += Number(e.amount) || 0;
+                });
+
+                // Высчитываем чистую прибыль
+                const profit = totalIncome - totalExpense;
+
+                // Закидываем цифры в красивый дашборд
+                document.getElementById('acc-income').innerText = `${totalIncome} ₽`;
+                document.getElementById('acc-expense').innerText = `${totalExpense} ₽`;
+                document.getElementById('acc-profit').innerText = `${profit} ₽`;
+
+                // Отрисовываем список трат
+                const list = document.getElementById('expenses-list');
+                list.innerHTML = '';
+                
+                if (expenses.length === 0) {
+                    list.innerHTML = '<p style="text-align: center; color: #888;">Расходов пока нет. Вы великолепны! 💰</p>';
+                    return;
+                }
+
+                expenses.forEach(e => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <p style="margin: 0; font-size: 1.1em;">💸 <strong>${e.description}</strong></p>
+                        <p style="margin: 5px 0 0 0; color: #ef4444; font-weight: bold;">- ${e.amount} ₽</p>
+                    `;
+                    list.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Ошибка загрузки финансов:', error);
+            }
+        }
+
+        async function addExpense() {
+            const desc = document.getElementById('expense-desc').value;
+            const amount = document.getElementById('expense-amount').value;
+
+            if (!desc || !amount) return alert('Заполни описание и сумму расхода!');
+
+            await fetch(`${API_URL}/api/expenses`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: desc, amount: amount })
+            });
+
+            // Очищаем форму и обновляем дашборд
+            document.getElementById('expense-desc').value = '';
+            document.getElementById('expense-amount').value = '';
+            loadAccounting();
+        }
     </script>
 </body>
 </html>
