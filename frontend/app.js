@@ -474,12 +474,16 @@ function startVoiceInput() {
 }
 
 function parseVoiceCommand(text) {
-    // Умный парсер (MVP-версия). Ищет ключевые слова и вырезает текст между ними.
-    const matchPickup = text.match(/откуда\s+(.+?)(?=\s+куда|\s+клиент|\s+имя|$)/i);
-    const matchDelivery = text.match(/куда\s+(.+?)(?=\s+откуда|\s+клиент|\s+имя|$)/i);
-    const matchClient = text.match(/(?:клиент|имя)\s+(.+?)(?=\s+откуда|\s+куда|$)/i);
+    // 1. Сначала удаляем все запятые, точки и другие знаки препинания, 
+    // которые любит добавлять встроенный микрофон
+    const cleanText = text.replace(/[,.?!;:]/g, ' ');
 
-    // Если нашли совпадения, вставляем в поля
+    // 2. Улучшенные регулярные выражения (теперь они не боятся пробелов и знаков)
+    const matchPickup = cleanText.match(/откуда(.*?)(?=куда|клиент|имя|$)/i);
+    const matchDelivery = cleanText.match(/куда(.*?)(?=откуда|клиент|имя|$)/i);
+    const matchClient = cleanText.match(/(?:клиент|имя)(.*?)(?=откуда|куда|$)/i);
+
+    // 3. Вставляем найденное, обрезая лишние пробелы по краям
     if (matchPickup) document.getElementById('pickup').value = matchPickup[1].trim();
     if (matchDelivery) document.getElementById('delivery').value = matchDelivery[1].trim();
     if (matchClient) document.getElementById('client').value = matchClient[1].trim();
@@ -487,7 +491,7 @@ function parseVoiceCommand(text) {
     if (matchPickup || matchDelivery || matchClient) {
         showNotification("✨ Магия сработала! Поля заполнены.");
     } else {
-        // Если забыла сказать "откуда" или "куда", запишем всё в имя, чтобы не потерялось
+        // Если вообще ничего не распознали, кидаем всё в имя
         document.getElementById('client').value = text;
         showNotification("🤔 Не нашел слов 'Откуда', 'Куда' или 'Клиент'. Записал всё в Имя.");
     }
