@@ -474,32 +474,33 @@ function startVoiceInput() {
 }
 
 function parseVoiceCommand(text) {
-    // 1. Убираем знаки препинания и лишние пробелы
-    const cleanText = text.replace(/[,.?!;:]/g, ' ').replace(/\s+/g, ' ');
+    // 1. Очищаем текст от знаков препинания и лишних пробелов
+    const cleanText = text.replace(/[,.?!;:]/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // 2. Универсальный список "стоп-слов" (\b означает границу слова)
-    // Как только парсер видит любое из этих слов, он прекращает захват текста для текущего поля
-    const stops = "(?=\\bоткуда\\b|\\bкуда\\b|\\bклиент\\b|\\bимя\\b|$)";
+    // 2. Умный поиск для русского языка (ищем начало строки или пробел перед ключевым словом)
+    const regexPickup = /(?:^|\s)откуда\s+(.*?)(?=\s+куда|\s+клиент|\s+имя|$)/i;
+    const regexDelivery = /(?:^|\s)куда\s+(.*?)(?=\s+откуда|\s+клиент|\s+имя|$)/i;
+    const regexClient = /(?:^|\s)(?:клиент|имя)\s+(.*?)(?=\s+откуда|\s+куда|$)/i;
 
-    // 3. Собираем умные регулярные выражения
-    const matchPickup = cleanText.match(new RegExp(`\\bоткуда\\b(.*?)${stops}`, 'i'));
-    const matchDelivery = cleanText.match(new RegExp(`\\bкуда\\b(.*?)${stops}`, 'i'));
-    const matchClient = cleanText.match(new RegExp(`\\b(?:клиент|имя)\\b(.*?)${stops}`, 'i'));
+    const matchPickup = cleanText.match(regexPickup);
+    const matchDelivery = cleanText.match(regexDelivery);
+    const matchClient = cleanText.match(regexClient);
 
-    // 4. Очищаем старые значения, чтобы они не мешали при новой диктовке
+    // 3. Очищаем поля перед новой диктовкой
     document.getElementById('pickup').value = '';
     document.getElementById('delivery').value = '';
     document.getElementById('client').value = '';
 
-    // 5. Вставляем новые результаты, обрезая пробелы по краям
+    // 4. Вставляем найденные значения
     if (matchPickup) document.getElementById('pickup').value = matchPickup[1].trim();
     if (matchDelivery) document.getElementById('delivery').value = matchDelivery[1].trim();
     if (matchClient) document.getElementById('client').value = matchClient[1].trim();
 
-    // 6. Уведомления
+    // 5. Уведомления
     if (matchPickup || matchDelivery || matchClient) {
         showNotification("✨ Голосовая команда успешно распознана!");
     } else {
+        // Если забыла сказать ключевые слова
         document.getElementById('client').value = text;
         showNotification("🤔 Не разобрал команду, записал весь текст в 'Имя'.");
     }
