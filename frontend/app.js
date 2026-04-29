@@ -474,25 +474,33 @@ function startVoiceInput() {
 }
 
 function parseVoiceCommand(text) {
-    // 1. Сначала удаляем все запятые, точки и другие знаки препинания, 
-    // которые любит добавлять встроенный микрофон
-    const cleanText = text.replace(/[,.?!;:]/g, ' ');
+    // 1. Убираем знаки препинания и лишние пробелы
+    const cleanText = text.replace(/[,.?!;:]/g, ' ').replace(/\s+/g, ' ');
 
-    // 2. Улучшенные регулярные выражения (теперь они не боятся пробелов и знаков)
-    const matchPickup = cleanText.match(/откуда(.*?)(?=куда|клиент|имя|$)/i);
-    const matchDelivery = cleanText.match(/куда(.*?)(?=откуда|клиент|имя|$)/i);
-    const matchClient = cleanText.match(/(?:клиент|имя)(.*?)(?=откуда|куда|$)/i);
+    // 2. Универсальный список "стоп-слов" (\b означает границу слова)
+    // Как только парсер видит любое из этих слов, он прекращает захват текста для текущего поля
+    const stops = "(?=\\bоткуда\\b|\\bкуда\\b|\\bклиент\\b|\\bимя\\b|$)";
 
-    // 3. Вставляем найденное, обрезая лишние пробелы по краям
+    // 3. Собираем умные регулярные выражения
+    const matchPickup = cleanText.match(new RegExp(`\\bоткуда\\b(.*?)${stops}`, 'i'));
+    const matchDelivery = cleanText.match(new RegExp(`\\bкуда\\b(.*?)${stops}`, 'i'));
+    const matchClient = cleanText.match(new RegExp(`\\b(?:клиент|имя)\\b(.*?)${stops}`, 'i'));
+
+    // 4. Очищаем старые значения, чтобы они не мешали при новой диктовке
+    document.getElementById('pickup').value = '';
+    document.getElementById('delivery').value = '';
+    document.getElementById('client').value = '';
+
+    // 5. Вставляем новые результаты, обрезая пробелы по краям
     if (matchPickup) document.getElementById('pickup').value = matchPickup[1].trim();
     if (matchDelivery) document.getElementById('delivery').value = matchDelivery[1].trim();
     if (matchClient) document.getElementById('client').value = matchClient[1].trim();
 
+    // 6. Уведомления
     if (matchPickup || matchDelivery || matchClient) {
-        showNotification("✨ Магия сработала! Поля заполнены.");
+        showNotification("✨ Голосовая команда успешно распознана!");
     } else {
-        // Если вообще ничего не распознали, кидаем всё в имя
         document.getElementById('client').value = text;
-        showNotification("🤔 Не нашел слов 'Откуда', 'Куда' или 'Клиент'. Записал всё в Имя.");
+        showNotification("🤔 Не разобрал команду, записал весь текст в 'Имя'.");
     }
 }
