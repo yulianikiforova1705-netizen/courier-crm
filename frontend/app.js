@@ -437,3 +437,58 @@ setInterval(async () => {
         });
     } catch(e) {}
 }, 10000);
+// ==========================================
+// 🎙️ ГОЛОСОВОЙ ВВОД (Web Speech API)
+// ==========================================
+
+function startVoiceInput() {
+    // Проверяем, поддерживает ли браузер магию голоса
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Твой браузер не поддерживает голосовой ввод. Попробуй открыть через Chrome!");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ru-RU'; // Устанавливаем русский язык
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+        // Используем нашу всплывашку для подсказки!
+        showNotification("🎤 Говори! Например: 'Откуда Москва Куда Арбат Клиент Иван'");
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.toLowerCase();
+        console.log("🗣️ Услышал:", transcript);
+        parseVoiceCommand(transcript);
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Ошибка микрофона:", event.error);
+        showNotification("❌ Ошибка микрофона. Проверь разрешения в браузере!");
+    };
+
+    // Запускаем прослушку
+    recognition.start();
+}
+
+function parseVoiceCommand(text) {
+    // Умный парсер (MVP-версия). Ищет ключевые слова и вырезает текст между ними.
+    const matchPickup = text.match(/откуда\s+(.+?)(?=\s+куда|\s+клиент|\s+имя|$)/i);
+    const matchDelivery = text.match(/куда\s+(.+?)(?=\s+откуда|\s+клиент|\s+имя|$)/i);
+    const matchClient = text.match(/(?:клиент|имя)\s+(.+?)(?=\s+откуда|\s+куда|$)/i);
+
+    // Если нашли совпадения, вставляем в поля
+    if (matchPickup) document.getElementById('pickup').value = matchPickup[1].trim();
+    if (matchDelivery) document.getElementById('delivery').value = matchDelivery[1].trim();
+    if (matchClient) document.getElementById('client').value = matchClient[1].trim();
+
+    if (matchPickup || matchDelivery || matchClient) {
+        showNotification("✨ Магия сработала! Поля заполнены.");
+    } else {
+        // Если забыла сказать "откуда" или "куда", запишем всё в имя, чтобы не потерялось
+        document.getElementById('client').value = text;
+        showNotification("🤔 Не нашел слов 'Откуда', 'Куда' или 'Клиент'. Записал всё в Имя.");
+    }
+}

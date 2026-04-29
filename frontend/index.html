@@ -39,14 +39,10 @@
     <div id="orders-view">
         <!-- Блок создания заказа (Скрывается в архиве) -->
         <div class="card" id="create-order-form">
-            <h2>➕ Создать новый заказ</h2>
-            <input type="text" id="pickup" placeholder="Откуда забрать (например: Москва, Красная площадь, 1)">
-            <input type="text" id="delivery" placeholder="Куда доставить (например: Москва, ул. Тверская, 7)">
-            <input type="text" id="client" placeholder="Имя клиента">
-            <input type="number" id="price" placeholder="Стоимость (₽)">
-            <input type="datetime-local" id="deadline-input" style="margin-bottom: 15px; width: 100%; box-sizing: border-box;">
-            <button class="btn" onclick="createOrder()" style="width: 100%; background: var(--primary); color: var(--bg); border: none;">ОТПРАВИТЬ В БАЗУ</button>
-        </div>
+           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">➕ Создать новый заказ</h2>
+                <button class="btn" onclick="startVoiceInput()" style="background: var(--accent); padding: 8px 12px; font-size: 1.2em;" title="Голосовой ввод">🎤</button>
+            </div>
         
         <!-- ВОТ ЭТИ ДВЕ СТРОЧКИ СЛУЧАЙНО СТЕРЛИСЬ: -->
         <input type="text" id="search-input" placeholder="🔍 Поиск по клиенту или адресу..." oninput="loadOrders()" style="margin-bottom: 25px;">
