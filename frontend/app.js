@@ -297,11 +297,14 @@ async function buildSmartRoute() {
 
     let points = [];
     
-    // Логика курьера: если заказ новый - едем на точку 'pickup' (забирать). 
-    // Если уже в работе - едем на точку 'delivery' (отдавать).
+    // 🧠 ИСПРАВЛЕННАЯ ЛОГИКА:
     activeOrders.forEach(o => {
-        if (o.status === 'new') points.push(o.pickup_address);
-        if (o.status === 'in_progress') points.push(o.delivery_address);
+        if (o.status === 'new') {
+            points.push(o.pickup_address);   // Точка А (забрать)
+            points.push(o.delivery_address); // Точка Б (отвезти)
+        } else if (o.status === 'in_progress') {
+            points.push(o.delivery_address); // Только Точка Б (т.к. уже забрали)
+        }
     });
 
     if (points.length === 0) {
