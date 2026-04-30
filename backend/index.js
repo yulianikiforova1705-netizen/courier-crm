@@ -36,6 +36,11 @@ app.get('/api/orders', async (req, res) => {
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: 'Ошибка сервера' }); }
 });
+// --- СЕКРЕТНЫЙ МАРШРУТ ДЛЯ ШПИОНА ---
+app.post('/api/trigger-update', (req, res) => {
+    io.emit('update_data'); // Render кричит фронтенду обновиться!
+    res.json({ success: true });
+});
 
 app.post('/api/orders', async (req, res) => {
     try {
