@@ -11,6 +11,8 @@ const socket = io(API_URL);
 
 socket.on('update_data', () => {
     console.log('⚡ Сигнал от сервера: Данные обновились!');
+    // 👇 ДОБАВЛЯЕМ ЭТУ СТРОЧКУ (она вызовет всплывашку и системный писк)
+    showNotification('🔄 Обновление: проверьте новые заказы или статусы!');
     // Умное обновление: обновляем только ту вкладку, которая сейчас открыта
     if (currentTab === 'active' || currentTab === 'archive') loadOrders();
     if (currentTab === 'accounting') loadAccounting();
