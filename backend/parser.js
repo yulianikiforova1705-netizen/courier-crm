@@ -21,26 +21,26 @@ async function startParser(client, io) {
             const pickup = matchPickup ? matchPickup[1].trim() : "Уточнить адрес";
             const delivery = matchDelivery ? matchDelivery[1].trim() : "Уточнить адрес";
             const price = matchPrice ? parseInt(matchPrice[1]) : 0;
-
-            try {
-                await pool.query(
+try {
+                // ВАЖНО: здесь должно быть const result = 
+                const result = await pool.query(
                     `INSERT INTO orders (pickup_address, delivery_address, client_name, client_phone, deadline, price, status) 
-                    VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6)`,
+                    VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, $5, $6) RETURNING id`,
                     [pickup, delivery, "Telegram Чат", "Не указан", price, 'new']
                 );
                 
                 console.log(`✅ Заказ в базе! Откуда: ${pickup} | Куда: ${delivery} | Цена: ${price}₽`);
                 
-                // 👈 Передаем ID из базы прямо в бота
-sendOrderNotification({ id: result.rows[0].id, pickup, delivery, price });
+                // Передаем ID из созданной переменной result
+                sendOrderNotification({ id: result.rows[0].id, pickup, delivery, price });
 
-               // 📢 Звоним на сервер Render и просим его обновить дашборды
+                if (io) {
+                    io.emit('update_data');
+                }
+
                 try {
                     await fetch('https://courier-crm-api.onrender.com/api/trigger-update', { method: 'POST' });
-                    console.log('📡 Сигнал об обновлении отправлен на сервер!');
-                } catch(e) {
-                    console.log('⚠️ Не удалось отправить сигнал на сервер');
-                }
+                } catch(e) {}
 
             } catch (err) {
                 console.error('❌ Ошибка базы:', err);
