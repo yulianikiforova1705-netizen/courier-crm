@@ -281,7 +281,41 @@ function parseVoiceCommand(text) {
     document.getElementById('client').value = client ? client[1].trim() : text;
     showNotification(pickup || delivery ? "✨ Распознано!" : "🤔 Записал всё в 'Имя'.");
 }
+// ==========================================
+// 🗺️ УМНАЯ МАРШРУТИЗАЦИЯ (TSP Lite)
+// ==========================================
+async function buildSmartRoute() {
+    const orders = await apiCall('/api/orders');
+    if (!orders) return;
 
+    // Берем только активные заказы
+    const activeOrders = orders.filter(o => o.status !== 'completed');
+    
+    if (activeOrders.length === 0) {
+        return showNotification("Нет активных заказов для построения маршрута!");
+    }
+
+    let points = [];
+    
+    // Логика курьера: если заказ новый - едем на точку 'pickup' (забирать). 
+    // Если уже в работе - едем на точку 'delivery' (отдавать).
+    activeOrders.forEach(o => {
+        if (o.status === 'new') points.push(o.pickup_address);
+        if (o.status === 'in_progress') points.push(o.delivery_address);
+    });
+
+    if (points.length === 0) {
+        return showNotification("Не удалось найти адреса для маршрута!");
+    }
+
+    // Секретный трюк Яндекса: склеиваем адреса через тильду (~)
+    const routeQuery = points.map(p => encodeURIComponent(p)).join('~');
+    
+    // Открываем Яндекс Карты с готовым мульти-маршрутом
+    window.open(`https://yandex.ru/maps/?rtext=${routeQuery}`, '_blank');
+    
+    showNotification("🗺️ Маршрут построен в новой вкладке!");
+}
 // ==========================================
 // 🚀 ЗАПУСК И СИСТЕМНЫЕ ФОНОВЫЕ ПРОЦЕССЫ
 // ==========================================

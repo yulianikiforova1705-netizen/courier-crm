@@ -55,6 +55,10 @@
         
         <!-- ВОТ ЭТИ ДВЕ СТРОЧКИ СЛУЧАЙНО СТЕРЛИСЬ: -->
         <input type="text" id="search-input" placeholder="🔍 Поиск по клиенту или адресу..." oninput="loadOrders()" style="margin-bottom: 25px;">
+        <!-- Кнопка умной маршрутизации -->
+<button class="btn" style="background: var(--accent); margin-top: 10px; width: 100%;" onclick="buildSmartRoute()">
+    🗺️ Построить маршрут для всех активных заказов
+</button>
         <div id="orders-list">Загрузка...</div>
     </div>
 
