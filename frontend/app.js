@@ -2,10 +2,6 @@
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
 const API_URL = 'https://courier-crm-api.onrender.com';
-// ==========================================
-// ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
-// ==========================================
-const API_URL = 'https://courier-crm-api.onrender.com';
 const ACCESS_PASSWORD = "vsystem2026";
 let currentTab = 'active';
 let notifiedTasks = new Set();
@@ -20,9 +16,6 @@ socket.on('update_data', () => {
     if (currentTab === 'accounting') loadAccounting();
     if (currentTab === 'plan') loadTasks();
 });
-const ACCESS_PASSWORD = "vsystem2026";
-let currentTab = 'active';
-let notifiedTasks = new Set();
 
 // Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
 async function apiCall(endpoint, method = 'GET', body = null) {
