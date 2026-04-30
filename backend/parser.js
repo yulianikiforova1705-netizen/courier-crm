@@ -31,11 +31,15 @@ async function startParser(client, io) {
                 
                 console.log(`✅ Заказ в базе! Откуда: ${pickup} | Куда: ${delivery} | Цена: ${price}₽`);
                 
-                sendOrderNotification({ pickup, delivery, price });
+                // 👈 Передаем ID из базы прямо в бота
+sendOrderNotification({ id: result.rows[0].id, pickup, delivery, price });
 
-                // 📢 МАГИЯ: Заказ сохранен, кричим Фронтенду обновиться!
-                if (io) {
-                    io.emit('update_data');
+               // 📢 Звоним на сервер Render и просим его обновить дашборды
+                try {
+                    await fetch('https://courier-crm-api.onrender.com/api/trigger-update', { method: 'POST' });
+                    console.log('📡 Сигнал об обновлении отправлен на сервер!');
+                } catch(e) {
+                    console.log('⚠️ Не удалось отправить сигнал на сервер');
                 }
 
             } catch (err) {

@@ -51,7 +51,7 @@ app.post('/api/orders', async (req, res) => {
         const query = `INSERT INTO orders (pickup_address, delivery_address, deadline, client_name, client_phone, cargo_details, price) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`;
         const newOrder = await db.query(query, [pickup_address, delivery_address, safeDeadline, client_name, client_phone || "Не указан", cargo_details || "Обычная", numericPrice]);
         
-        sendOrderNotification({ pickup: pickup_address, delivery: delivery_address, price: numericPrice });
+        sendOrderNotification({ id: newOrder.rows[0].id, pickup: pickup_address, delivery: delivery_address, price: numericPrice });
         
         io.emit('update_data'); // 📢 КРИЧИМ ВСЕМ: ДАННЫЕ ОБНОВИЛИСЬ!
         res.status(201).json(newOrder.rows[0]);
