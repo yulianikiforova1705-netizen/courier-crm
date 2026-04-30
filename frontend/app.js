@@ -1,4 +1,27 @@
-// 🌓 Логика темы
+// ==========================================
+// ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
+// ==========================================
+const API_URL = 'https://courier-crm-api.onrender.com';
+const ACCESS_PASSWORD = "vsystem2026";
+let currentTab = 'active';
+let notifiedTasks = new Set();
+
+// Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
+async function apiCall(endpoint, method = 'GET', body = null) {
+    try {
+        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) options.body = JSON.stringify(body);
+        const res = await fetch(`${API_URL}${endpoint}`, options);
+        return await res.json();
+    } catch (err) {
+        console.error(`Ошибка запроса к ${endpoint}:`, err);
+        return null;
+    }
+}
+
+// ==========================================
+// 🔐 АВТОРИЗАЦИЯ И ТЕМА
+// ==========================================
 const themeBtn = document.getElementById('theme-btn');
 if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark-theme');
@@ -12,9 +35,6 @@ function toggleTheme() {
     themeBtn.innerText = isDark ? '☀️' : '🌙';
 }
 
-// 🔐 Логика авторизации
-const ACCESS_PASSWORD = "vsystem2026";
-
 function checkAuth() {
     if (localStorage.getItem('trackflow_auth') === 'true') {
         document.getElementById('login-screen').style.display = 'none';
@@ -25,8 +45,7 @@ function checkAuth() {
 }
 
 function checkPassword() {
-    const input = document.getElementById('password-input').value;
-    if (input === ACCESS_PASSWORD) {
+    if (document.getElementById('password-input').value === ACCESS_PASSWORD) {
         localStorage.setItem('trackflow_auth', 'true');
         document.getElementById('login-screen').style.display = 'none';
         loadOrders();
@@ -36,23 +55,22 @@ function checkPassword() {
     }
 }
 
-// 📑 Обновленная логика вкладок
-let currentTab = 'active';
+// ==========================================
+// 📑 НАВИГАЦИЯ (ВКЛАДКИ И АРХИВ)
+// ==========================================
 function switchTab(tab) {
     currentTab = tab;
     
-    // Сбрасываем стили со всех кнопок
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
 
-    // Скрываем все экраны
     document.getElementById('orders-view').style.display = 'none';
     document.getElementById('accounting-view').style.display = 'none';
     document.getElementById('plan-view').style.display = 'none';
 
     if (tab === 'active' || tab === 'archive') {
         document.getElementById('orders-view').style.display = 'block';
-        // МАГИЯ: Скрываем огромную форму "Создать заказ" в Архиве!
+        // В Архиве прячем форму создания заказа!
         document.getElementById('create-order-form').style.display = (tab === 'active') ? 'block' : 'none';
         loadOrders();
     } else if (tab === 'accounting') {
@@ -63,130 +81,77 @@ function switchTab(tab) {
         loadTasks();
     }
 }
-    
-// 📡 API
-const API_URL = 'https://courier-crm-api.onrender.com';
 
-// 📦 Обновление статуса
-async function updateOrderStatus(id, status) {
-    try {
-        await fetch(`${API_URL}/api/orders/${id}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
-        loadOrders();
-    } catch (err) {
-        console.error('Ошибка обновления статуса:', err);
+// ==========================================
+// 📦 ЛОГИКА ЗАКАЗОВ
+// ==========================================
+async function loadOrders() {
+    const orders = await apiCall('/api/orders');
+    if (!orders) return;
+
+    const list = document.getElementById('orders-list');
+    const searchQuery = (document.getElementById('search-input')?.value || '').toLowerCase();
+
+    // Фильтруем заказы (Активные vs Архив + Поиск)
+    const filteredOrders = orders.filter(order => {
+        const isArchive = order.status === 'completed';
+        const tabMatch = (currentTab === 'active') ? !isArchive : isArchive;
+        const textStr = `${order.client_name} ${order.pickup_address} ${order.delivery_address}`.toLowerCase();
+        return tabMatch && textStr.includes(searchQuery);
+    });
+
+    if (filteredOrders.length === 0) {
+        list.innerHTML = currentTab === 'archive' 
+            ? '<p style="color: #64748b;">В архиве пока пусто. Пора доставить первый заказ!</p>' 
+            : '<p style="color: #64748b;">Активных заказов нет.</p>';
+        return;
     }
+
+    list.innerHTML = filteredOrders.map(order => createOrderCardHTML(order)).join('');
 }
 
-async function loadOrders() {
-    try {
-        const response = await fetch(`${API_URL}/api/orders`);
-        const orders = await response.json();
-        const list = document.getElementById('orders-list');
-        list.innerHTML = '';
-        
-        const searchInput = document.getElementById('search-input');
-        const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+// Вынесли гигантский HTML карточки отдельно, чтобы не засорять код
+function createOrderCardHTML(order) {
+    const isCompleted = order.status === 'completed';
+    const yandexUrl = `https://yandex.ru/maps/?text=${encodeURIComponent(order.status === 'new' ? order.pickup_address : order.delivery_address)}`;
+    const routeText = order.status === 'new' ? '📍 Показать откуда забрать' : '🏁 Показать куда доставить';
+    
+    let actionBtn = '';
+    if (order.status === 'new') actionBtn = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
+    if (order.status === 'in_progress') actionBtn = `<button class="btn btn-complete" onclick="updateOrderStatus(${order.id}, 'completed')">🟢 Доставлено</button>`;
 
-        let totalIncome = 0;
-        orders.forEach(o => {
-            if (o.status === 'completed') {
-                totalIncome += Number(o.price) || 0;
-            }
-        });
-
-        const filteredOrders = orders.filter(order => {
-            let tabMatch = false;
-            if (currentTab === 'active') {
-                tabMatch = order.status !== 'completed';
-            } else {
-                tabMatch = order.status === 'completed';
-            }
-            const textString = `${order.client_name} ${order.pickup_address} ${order.delivery_address}`.toLowerCase();
-            const searchMatch = textString.includes(searchQuery);
-            return tabMatch && searchMatch;
-        });
-
-        if (filteredOrders.length === 0) {
-            list.innerHTML = '<p style="color: #64748b;">В этой категории пока пусто.</p>';
-            return;
-        }
-
-        filteredOrders.forEach(order => {
-            const card = document.createElement('div');
-            card.className = 'order-card';
-            
-            const currentStatus = order.status.toLowerCase();
-
-            // Логика умных ссылок на Я.Карты
-            let yandexUrl = '';
-            let routeBtnText = '';
-            if (currentStatus === 'new') {
-                yandexUrl = `https://yandex.ru/maps/?text=${encodeURIComponent(order.pickup_address)}`;
-                routeBtnText = '📍 Показать откуда забрать';
-            } else {
-                yandexUrl = `https://yandex.ru/maps/?text=${encodeURIComponent(order.delivery_address)}`;
-                routeBtnText = '🏁 Показать куда доставить';
-            }
-
-            // Кнопки статусов
-            let actionButton = '';
-            if (currentStatus === 'new') {
-                actionButton = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
-            } else if (currentStatus === 'in_progress') {
-                actionButton = `<button class="btn btn-complete" onclick="updateOrderStatus(${order.id}, 'completed')">🟢 Доставлено</button>`;
-            }
-
-            // Время выполнения
-            let timeInfo = '';
-            if (currentStatus === 'completed' && order.created_at && order.completed_at) {
-                const start = new Date(order.created_at);
-                const end = new Date(order.completed_at);
-                const diffMins = Math.round((end - start) / 60000);
-                let timeStr = diffMins < 60 ? `${diffMins} мин.` : `${Math.floor(diffMins / 60)} ч. ${diffMins % 60} мин.`;
-                timeInfo = `<p style="color: var(--primary); font-weight: bold; margin-top: 5px;">⏱ Время выполнения: ${timeStr}</p>`;
-            }
-
-            let deadlineText = 'Как можно скорее';
-            if (order.deadline) {
-                const dlDate = new Date(order.deadline);
-                if (!isNaN(dlDate)) {
-                    deadlineText = dlDate.toLocaleString('ru-RU', {
-                        day: 'numeric', month: 'short', 
-                        hour: '2-digit', minute:'2-digit'
-                    });
-                }
-            }
-
-            card.innerHTML = `
-                <h3>Заказ #${order.id}</h3>
-                <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
-                <p>💵 <strong>Сумма:</strong> ${order.price || 0} ₽</p>
-                <p>📅 <strong>К какому времени:</strong> <span style="color: var(--accent); font-weight: bold;">${deadlineText}</span></p>
-                
-                <div style="background: rgba(100, 116, 139, 0.05); padding: 12px; border-radius: 8px; margin: 15px 0; border: 1px solid var(--border);">
-                    <p style="margin-top: 0;">📍 <strong>Откуда:</strong> ${order.pickup_address}</p>
-                    <p style="margin-bottom: 0;">🏁 <strong>Куда:</strong> ${order.delivery_address}</p>
-                </div>
-                
-                <p>Статус: <span class="status">${order.status}</span></p>
-                ${timeInfo}
-                
-                <div style="margin-top: 15px;">
-                    ${actionButton}
-                </div>
-                <div style="margin-top: 10px;">
-                    <a class="btn btn-map" href="${yandexUrl}" target="_blank">${routeBtnText}</a>
-                </div>
-            `;
-            list.appendChild(card);
-        });
-    } catch (err) {
-        document.getElementById('orders-list').innerHTML = '<p style="color:red">Ошибка загрузки. Подождите 30 сек и обновите страницу.</p>';
+    let timeInfo = '';
+    if (isCompleted && order.created_at && order.completed_at) {
+        const diffMins = Math.round((new Date(order.completed_at) - new Date(order.created_at)) / 60000);
+        timeInfo = `<p style="color: var(--primary); font-weight: bold;">⏱ Выполнено за: ${diffMins < 60 ? diffMins + ' мин.' : Math.floor(diffMins/60) + ' ч. ' + diffMins%60 + ' мин.'}</p>`;
     }
+
+    const dlDate = order.deadline ? new Date(order.deadline) : null;
+    const deadlineText = (dlDate && !isNaN(dlDate)) ? dlDate.toLocaleString('ru-RU', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'}) : 'Как можно скорее';
+
+    return `
+        <div class="order-card ${isCompleted ? 'archived-card' : ''}">
+            <h3>Заказ #${order.id}</h3>
+            <p>👤 <strong>Клиент:</strong> ${order.client_name}</p>
+            <p>💵 <strong>Сумма:</strong> ${order.price || 0} ₽</p>
+            <p>📅 <strong>К какому времени:</strong> <span style="color: var(--accent); font-weight: bold;">${deadlineText}</span></p>
+            
+            <div style="background: rgba(100, 116, 139, 0.05); padding: 12px; border-radius: 8px; margin: 15px 0; border: 1px solid var(--border);">
+                <p style="margin-top: 0;">📍 <strong>Откуда:</strong> ${order.pickup_address}</p>
+                <p style="margin-bottom: 0;">🏁 <strong>Куда:</strong> ${order.delivery_address}</p>
+            </div>
+            
+            <p>Статус: <span class="status">${order.status}</span></p>
+            ${timeInfo}
+            ${actionBtn ? `<div style="margin-top: 15px;">${actionBtn}</div>` : ''}
+            ${!isCompleted ? `<div style="margin-top: 10px;"><a class="btn btn-map" href="${yandexUrl}" target="_blank">${routeText}</a></div>` : ''}
+        </div>
+    `;
+}
+
+async function updateOrderStatus(id, status) {
+    await apiCall(`/api/orders/${id}/status`, 'PUT', { status });
+    loadOrders();
 }
 
 async function createOrder() {
@@ -198,310 +163,131 @@ async function createOrder() {
 
     if (!pickup || !delivery || !client) return alert('Заполни все поля!');
 
-    // Форматируем время заказа
-    const safeDeadline = deadlineVal ? new Date(deadlineVal).toISOString() : null;
+    const deadline = deadlineVal ? new Date(deadlineVal).toISOString() : null;
 
-    // 1. Отправляем заказ в базу заказов
-    await fetch(`${API_URL}/api/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            pickup_address: pickup, 
-            delivery_address: delivery, 
-            client_name: client, 
-            deadline: safeDeadline,
-            client_phone: "Не указан",
-            cargo_details: "Обычная доставка",
-            price: price || 0
-        })
+    await apiCall('/api/orders', 'POST', { 
+        pickup_address: pickup, delivery_address: delivery, client_name: client, 
+        deadline, client_phone: "Не указан", cargo_details: "Обычная", price: price || 0 
     });
 
-    // 2. 🪄 УМНАЯ ИНТЕГРАЦИЯ: Если указано время, сразу создаем задачу в Планере!
-    if (safeDeadline) {
-        const autoTaskDesc = `🚚 Доставить заказ: ${client} (${delivery})`;
-        
-        await fetch(`${API_URL}/api/tasks`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                description: autoTaskDesc, 
-                remind_at: safeDeadline 
-            })
-        });
-    }
+    if (deadline) await apiCall('/api/tasks', 'POST', { description: `🚚 Заказ: ${client} (${delivery})`, remind_at: deadline });
 
-    // Очищаем форму
-    document.getElementById('pickup').value = '';
-    document.getElementById('delivery').value = '';
-    document.getElementById('client').value = '';
-    document.getElementById('price').value = '';
-    document.getElementById('deadline-input').value = '';
-    
-    // Обновляем списки на экране
-    loadOrders();
-    loadTasks(); // Обновляем и планер в фоне тоже
+    ['pickup', 'delivery', 'client', 'price', 'deadline-input'].forEach(id => document.getElementById(id).value = '');
+    loadOrders(); loadTasks();
 }
+
 // ==========================================
-// ЛОГИКА ФИНАНСОВ (БУХГАЛТЕРИЯ)
+// 💰 ФИНАНСЫ И ПЛАНЕР
 // ==========================================
 async function loadAccounting() {
-    try {
-        const resOrders = await fetch(`${API_URL}/api/orders`);
-        const orders = await resOrders.json();
-        
-        const resExp = await fetch(`${API_URL}/api/expenses`);
-        const expenses = await resExp.json();
+    const orders = await apiCall('/api/orders') || [];
+    const expenses = await apiCall('/api/expenses') || [];
 
-        let totalIncome = 0;
-        orders.forEach(o => {
-            if (o.status === 'completed') totalIncome += Number(o.price) || 0;
-        });
+    const income = orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + (Number(o.price) || 0), 0);
+    const expense = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
-        let totalExpense = 0;
-        expenses.forEach(e => {
-            totalExpense += Number(e.amount) || 0;
-        });
+    document.getElementById('acc-income').innerText = `${income} ₽`;
+    document.getElementById('acc-expense').innerText = `${expense} ₽`;
+    document.getElementById('acc-profit').innerText = `${income - expense} ₽`;
 
-        const profit = totalIncome - totalExpense;
-
-        document.getElementById('acc-income').innerText = `${totalIncome} ₽`;
-        document.getElementById('acc-expense').innerText = `${totalExpense} ₽`;
-        document.getElementById('acc-profit').innerText = `${profit} ₽`;
-
-        const list = document.getElementById('expenses-list');
-        list.innerHTML = '';
-        
-        if (expenses.length === 0) {
-            list.innerHTML = '<p style="color: #64748b; text-align: center;">Расходов пока нет. Вы великолепны! 💰</p>';
-            return;
-        }
-
-        expenses.forEach(e => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <p style="margin: 0; font-size: 1.1em;">💸 <strong>${e.description}</strong></p>
-                <p style="margin: 5px 0 0 0; color: #ef4444; font-weight: bold;">- ${e.amount} ₽</p>
-            `;
-            list.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error('Ошибка загрузки финансов:', error);
-    }
+    const list = document.getElementById('expenses-list');
+    list.innerHTML = expenses.length ? expenses.map(e => `
+        <div class="card">
+            <p style="margin: 0; font-size: 1.1em;">💸 <strong>${e.description}</strong></p>
+            <p style="margin: 5px 0 0 0; color: #ef4444; font-weight: bold;">- ${e.amount} ₽</p>
+        </div>
+    `).join('') : '<p style="color: #64748b; text-align: center;">Расходов пока нет. Вы великолепны! 💰</p>';
 }
 
 async function addExpense() {
     const desc = document.getElementById('expense-desc').value;
     const amount = document.getElementById('expense-amount').value;
-
-    if (!desc || !amount) return alert('Заполни описание и сумму расхода!');
-
-    await fetch(`${API_URL}/api/expenses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc, amount: amount })
-    });
-
+    if (!desc || !amount) return alert('Заполни поля!');
+    
+    await apiCall('/api/expenses', 'POST', { description: desc, amount });
     document.getElementById('expense-desc').value = '';
     document.getElementById('expense-amount').value = '';
     loadAccounting();
 }
 
-// Первый запуск
-checkAuth();
-
-// Умное автообновление
-setInterval(() => {
-    if (localStorage.getItem('trackflow_auth') !== 'true') return;
-    const pickup = document.getElementById('pickup').value;
-    const delivery = document.getElementById('delivery').value;
-    const client = document.getElementById('client').value;
-
-    // Обновляем только если юзер не вводит текст в форму прямо сейчас
-    if (pickup === '' && delivery === '' && client === '') {
-        if (currentTab === 'accounting') {
-            loadAccounting();
-        } else {
-            loadOrders();
-        }
-    }
-}, 3000);
-// ==========================================
-// ЛОГИКА ПЛАНЕРА И НАПОМИНАНИЙ
-// ==========================================
-
-let notifiedTasks = new Set(); // Память: чтобы не спамить
-
-function showNotification(message) {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = `🔔 <strong style="color: var(--accent);">Внимание!</strong><br><span style="font-size: 1em;">${message}</span>`;
-    container.appendChild(toast);
-    
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
-        osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
-    } catch(e) {}
-
-    // Увеличили время показа до 10 секунд, чтобы точно не пропустить!
-    setTimeout(() => toast.remove(), 10000);
-}
-
 async function loadTasks() {
-    try {
-        const response = await fetch(`${API_URL}/api/tasks`);
-        const tasks = await response.json();
-        const list = document.getElementById('tasks-list');
-        list.innerHTML = '';
-
-        if (tasks.length === 0) {
-            list.innerHTML = '<p style="color: #64748b; text-align: center;">План чист. Можно отдыхать!</p>';
-            return;
-        }
-
-        tasks.forEach(t => {
-            const isDone = t.is_completed ? 'task-done' : '';
-            const btn = t.is_completed ? '' : `<button class="btn btn-complete" style="padding: 6px 12px; margin: 0;" onclick="completeTask(${t.id})">✔</button>`;
-            
-            // 🕒 ЧИНИМ ЧТЕНИЕ ВРЕМЕНИ ИЗ БАЗЫ (Приклеиваем 'Z')
-            let safeDateStr = t.remind_at;
-            if (!safeDateStr.endsWith('Z')) safeDateStr += 'Z';
-            
-            const timeObj = new Date(safeDateStr);
-            const timeStr = timeObj.toLocaleString('ru-RU', { hour: '2-digit', minute:'2-digit', day: 'numeric', month: 'short' });
-
-            const item = document.createElement('div');
-            item.className = `task-item ${isDone}`;
-            item.innerHTML = `
-                <div>
-                    <strong style="color: var(--primary); font-size: 1.1em;">${timeStr}</strong><br>
-                    <span>${t.description}</span>
-                </div>
-                <div>${btn}</div>
-            `;
-            list.appendChild(item);
-        });
-    } catch (error) {
-        console.error('Ошибка загрузки задач', error);
-    }
+    const tasks = await apiCall('/api/tasks') || [];
+    const list = document.getElementById('tasks-list');
+    
+    list.innerHTML = tasks.length ? tasks.map(t => `
+        <div class="task-item ${t.is_completed ? 'task-done' : ''}">
+            <div>
+                <strong style="color: var(--primary);">${new Date((t.remind_at.endsWith('Z') ? t.remind_at : t.remind_at + 'Z')).toLocaleString('ru-RU', {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'})}</strong><br>
+                <span>${t.description}</span>
+            </div>
+            <div>${!t.is_completed ? `<button class="btn btn-complete" style="padding: 6px 12px;" onclick="completeTask(${t.id})">✔</button>` : ''}</div>
+        </div>
+    `).join('') : '<p style="color: #64748b; text-align: center;">План чист. Можно отдыхать!</p>';
 }
 
 async function addTask() {
     const desc = document.getElementById('task-desc').value;
     const time = document.getElementById('task-time').value;
-
-    if (!desc || !time) return alert('Заполни описание и время!');
-
-    const safeTime = new Date(time).toISOString();
-
-    await fetch(`${API_URL}/api/tasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc, remind_at: safeTime })
-    });
-
-    document.getElementById('task-desc').value = '';
-    document.getElementById('task-time').value = '';
+    if (!desc || !time) return alert('Заполни поля!');
+    await apiCall('/api/tasks', 'POST', { description: desc, remind_at: new Date(time).toISOString() });
+    document.getElementById('task-desc').value = ''; document.getElementById('task-time').value = '';
     loadTasks();
 }
 
-async function completeTask(id) {
-    await fetch(`${API_URL}/api/tasks/${id}/complete`, { method: 'PUT' });
-    loadTasks();
-}
+async function completeTask(id) { await apiCall(`/api/tasks/${id}/complete`, 'PUT'); loadTasks(); }
 
-// Фоновый сканер напоминаний (каждые 10 секунд)
-setInterval(async () => {
-    if (localStorage.getItem('trackflow_auth') !== 'true') return;
+// ==========================================
+// 🎙️ ГОЛОС И УВЕДОМЛЕНИЯ
+// ==========================================
+function showNotification(message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `🔔 <strong>Внимание!</strong><br><span>${message}</span>`;
+    container.appendChild(toast);
     
-    try {
-        const response = await fetch(`${API_URL}/api/tasks`);
-        const tasks = await response.json();
-        const now = new Date();
-
-        tasks.forEach(t => {
-            // 🕒 И ЗДЕСЬ ЧИНИМ ЧТЕНИЕ ВРЕМЕНИ ДЛЯ СКАНЕРА
-            let safeDateStr = t.remind_at;
-            if (!safeDateStr.endsWith('Z')) safeDateStr += 'Z';
-            
-            const taskTime = new Date(safeDateStr);
-            
-            if (!t.is_completed && taskTime <= now && !notifiedTasks.has(t.id)) {
-                showNotification(`Время пришло: <b>${t.description}</b>`);
-                notifiedTasks.add(t.id);
-            }
-        });
-    } catch(e) {}
-}, 10000);
-// ==========================================
-// 🎙️ ГОЛОСОВОЙ ВВОД (Web Speech API)
-// ==========================================
+    try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); osc.frequency.setValueAtTime(800, ctx.currentTime); osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15); } catch(e) {}
+    setTimeout(() => toast.remove(), 10000);
+}
 
 function startVoiceInput() {
-    // Проверяем, поддерживает ли браузер магию голоса
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("Твой браузер не поддерживает голосовой ввод. Попробуй открыть через Chrome!");
-        return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'ru-RU'; // Устанавливаем русский язык
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-        // Используем нашу всплывашку для подсказки!
-        showNotification("🎤 Говори! Например: 'Откуда Москва Куда Арбат Клиент Иван'");
-    };
-
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        console.log("🗣️ Услышал:", transcript);
-        parseVoiceCommand(transcript);
-    };
-
-    recognition.onerror = (event) => {
-        console.error("Ошибка микрофона:", event.error);
-        showNotification("❌ Ошибка микрофона. Проверь разрешения в браузере!");
-    };
-
-    // Запускаем прослушку
-    recognition.start();
+    if (!SpeechRecognition) return alert("Браузер не поддерживает голос. Нужен Chrome!");
+    const rec = new SpeechRecognition(); rec.lang = 'ru-RU';
+    rec.onstart = () => showNotification("🎤 Говори! 'Откуда... Куда... Клиент...'");
+    rec.onresult = (e) => parseVoiceCommand(e.results[0][0].transcript.toLowerCase());
+    rec.start();
 }
 
 function parseVoiceCommand(text) {
-    // 1. Очищаем текст от знаков препинания и лишних пробелов
-    const cleanText = text.replace(/[,.?!;:]/g, ' ').replace(/\s+/g, ' ').trim();
+    const clean = text.replace(/[,.?!;:]/g, ' ').replace(/\s+/g, ' ').trim();
+    const pickup = clean.match(/(?:^|\s)откуда\s+(.*?)(?=\s+куда|\s+клиент|\s+имя|$)/i);
+    const delivery = clean.match(/(?:^|\s)куда\s+(.*?)(?=\s+откуда|\s+клиент|\s+имя|$)/i);
+    const client = clean.match(/(?:^|\s)(?:клиент|имя)\s+(.*?)(?=\s+откуда|\s+куда|$)/i);
 
-    // 2. Умный поиск для русского языка (ищем начало строки или пробел перед ключевым словом)
-    const regexPickup = /(?:^|\s)откуда\s+(.*?)(?=\s+куда|\s+клиент|\s+имя|$)/i;
-    const regexDelivery = /(?:^|\s)куда\s+(.*?)(?=\s+откуда|\s+клиент|\s+имя|$)/i;
-    const regexClient = /(?:^|\s)(?:клиент|имя)\s+(.*?)(?=\s+откуда|\s+куда|$)/i;
-
-    const matchPickup = cleanText.match(regexPickup);
-    const matchDelivery = cleanText.match(regexDelivery);
-    const matchClient = cleanText.match(regexClient);
-
-    // 3. Очищаем поля перед новой диктовкой
-    document.getElementById('pickup').value = '';
-    document.getElementById('delivery').value = '';
-    document.getElementById('client').value = '';
-
-    // 4. Вставляем найденные значения
-    if (matchPickup) document.getElementById('pickup').value = matchPickup[1].trim();
-    if (matchDelivery) document.getElementById('delivery').value = matchDelivery[1].trim();
-    if (matchClient) document.getElementById('client').value = matchClient[1].trim();
-
-    // 5. Уведомления
-    if (matchPickup || matchDelivery || matchClient) {
-        showNotification("✨ Голосовая команда успешно распознана!");
-    } else {
-        // Если забыла сказать ключевые слова
-        document.getElementById('client').value = text;
-        showNotification("🤔 Не разобрал команду, записал весь текст в 'Имя'.");
-    }
+    document.getElementById('pickup').value = pickup ? pickup[1].trim() : '';
+    document.getElementById('delivery').value = delivery ? delivery[1].trim() : '';
+    document.getElementById('client').value = client ? client[1].trim() : text;
+    showNotification(pickup || delivery ? "✨ Распознано!" : "🤔 Записал всё в 'Имя'.");
 }
+
+// ==========================================
+// 🚀 ЗАПУСК И СИСТЕМНЫЕ ФОНОВЫЕ ПРОЦЕССЫ
+// ==========================================
+checkAuth();
+
+setInterval(async () => {
+    if (localStorage.getItem('trackflow_auth') !== 'true') return;
+    const now = new Date();
+    const tasks = await apiCall('/api/tasks') || [];
+    
+    tasks.forEach(t => {
+        const taskTime = new Date(t.remind_at.endsWith('Z') ? t.remind_at : t.remind_at + 'Z');
+        if (!t.is_completed && taskTime <= now && !notifiedTasks.has(t.id)) {
+            showNotification(`Время пришло: <b>${t.description}</b>`);
+            notifiedTasks.add(t.id);
+        }
+    });
+
+    if (currentTab === 'active' && !document.getElementById('pickup').value) loadOrders();
+}, 10000); // Интервал увеличен до 10 сек, чтобы не перегружать сервер
