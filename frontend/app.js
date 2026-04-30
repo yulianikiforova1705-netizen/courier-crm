@@ -2,6 +2,24 @@
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
 const API_URL = 'https://courier-crm-api.onrender.com';
+// ==========================================
+// ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
+// ==========================================
+const API_URL = 'https://courier-crm-api.onrender.com';
+const ACCESS_PASSWORD = "vsystem2026";
+let currentTab = 'active';
+let notifiedTasks = new Set();
+
+// 🪄 МАГИЯ WEBSOCKETS: Слушаем сервер в реальном времени
+const socket = io(API_URL);
+
+socket.on('update_data', () => {
+    console.log('⚡ Сигнал от сервера: Данные обновились!');
+    // Умное обновление: обновляем только ту вкладку, которая сейчас открыта
+    if (currentTab === 'active' || currentTab === 'archive') loadOrders();
+    if (currentTab === 'accounting') loadAccounting();
+    if (currentTab === 'plan') loadTasks();
+});
 const ACCESS_PASSWORD = "vsystem2026";
 let currentTab = 'active';
 let notifiedTasks = new Set();
@@ -288,6 +306,4 @@ setInterval(async () => {
             notifiedTasks.add(t.id);
         }
     });
-
-    if (currentTab === 'active' && !document.getElementById('pickup').value) loadOrders();
 }, 10000); // Интервал увеличен до 10 сек, чтобы не перегружать сервер
