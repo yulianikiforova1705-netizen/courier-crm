@@ -6,11 +6,16 @@ const { sendOrderNotification } = require('./bot');
 async function startParser(client, io) {
     client.addEventHandler(async (event) => {
         const message = event.message;
-        
         if (message && message.text) {
-            if (message.text.includes('У ВАС НОВЫЙ ЗАКАЗ')) return;
+            // БРОНЯ ОТ БЕСКОНЕЧНОЙ ПЕТЛИ 🛡️
+            if (message.text.includes('НОВЫЙ ЗАКАЗ') || 
+                message.text.includes('Взять в работу') || 
+                message.text.includes('Сумма: 0 ₽')) {
+                return; // Сразу блокируем и выходим!
+            }
 
             const text = message.text.replace(/\n/g, ' ');
+        
             
             const matchPickup = text.match(/откуда[:\s]+(.*?)(?=\.|цена|(?<!от)куда|$)/i);
             const matchDelivery = text.match(/(?<!от)куда[:\s]+(.*?)(?=\.|цена|откуда|$)/i);
