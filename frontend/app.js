@@ -158,6 +158,9 @@ function createOrderCardHTML(order) {
             ${timeInfo}
             ${actionBtn ? `<div style="margin-top: 15px;">${actionBtn}</div>` : ''}
             ${!isCompleted ? `<div style="margin-top: 10px;"><a class="btn btn-map" href="${yandexUrl}" target="_blank">${routeText}</a></div>` : ''}
+            <button onclick="copyTrackingLink(${order.id})" style="background: transparent; color: #a0a0b0; border: 1px dashed #a0a0b0; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-family: inherit; font-size: 12px;">
+    🔗 СКОПИРОВАТЬ ССЫЛКУ КЛИЕНТУ
+</button>
         </div>
     `;
 }
@@ -339,3 +342,16 @@ setInterval(async () => {
         }
     });
 }, 10000); // Интервал увеличен до 10 сек, чтобы не перегружать сервер
+// Функция для копирования трекинг-ссылки клиенту
+window.copyTrackingLink = function(orderId) {
+    // Формируем ту самую ссылку с правильным номером заказа
+    const link = `https://yulianikiforova1705-netizen.github.io/courier-crm/frontend/track.html?id=${orderId}`;
+    
+    // Копируем её в буфер обмена телефона/компьютера
+    navigator.clipboard.writeText(link).then(() => {
+        alert('✅ Ссылка скопирована! Можно отправлять клиенту.');
+    }).catch(err => {
+        console.error('Ошибка копирования: ', err);
+        alert('Не удалось скопировать ссылку 😔');
+    });
+};
