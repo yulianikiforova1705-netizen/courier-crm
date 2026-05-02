@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статус заказа | TrackFlow</title>
+    <!-- Подключаем шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Базовые стили (темная тема) */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212; /* Темный фон */
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .track-container {
+            background: #1e1e24; /* Цвет карточки */
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Заголовок и логотип */
+        .brand {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #7b2cbf, #4cc9f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        /* Блок со статусом */
+        .status-box {
+            background: #2a2a35;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .status-title {
+            font-size: 14px;
+            color: #a0a0b0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #00f5d4; /* Неоновый зеленый/бирюзовый для акцента */
+        }
+
+        /* Блок с деталями заказа */
+        .details {
+            text-align: left;
+            margin-top: 20px;
+            background: #2a2a35;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .detail-row {
+            margin-bottom: 10px;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #a0a0b0;
+        }
+
+        .detail-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Лоадер и ошибки */
+        #loading, #error-message {
+            font-size: 18px;
+            color: #a0a0b0;
+        }
+
+        #order-content {
+            display: none; /* Скрыто до загрузки данных */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="track-container">
+        <div class="brand">TrackFlow</div>
+        
+        <div id="loading">Ищем ваш заказ... 🔍</div>
+        <div id="error-message" style="display: none; color: #ff4d4d;"></div>
+
+        <div id="order-content">
+            <div class="status-box">
+                <div class="status-title">Статус доставки</div>
+                <div class="status-value" id="order-status">Загрузка...</div>
+            </div>
+
+            <div class="details">
+                <div class="detail-row">
+                    <div class="detail-label">Заказ №</div>
+                    <div class="detail-text" id="order-number">...</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Откуда:</div>
+                    <div class="detail-text" id="order-from">...</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Куда:</div>
+                    <div class="detail-text" id="order-to">...</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Сумма к оплате:</div>
+                    <div class="detail-text" id="order-price">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Получаем номер заказа (ID) прямо из адресной строки (из ссылки)
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('id');
+
+        // ВАЖНО: Замени эту ссылку на свой РЕАЛЬНЫЙ адрес сервера на Render!
+        const API_URL = 'https://courier-crm-api.onrender.com'; 
+
+        async function fetchOrder() {
+            if (!orderId) {
+                showError("Ссылка недействительна. Не указан номер заказа.");
+                return;
+            }
+
+            try {
+                // 2. Обращаемся к нашему новому эндпоинту на бэкенде
+                const response = await fetch(`${API_URL}/api/track/${orderId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Заказ не найден');
+                }
+
+                const order = await response.json();
+                
+                // 3. Заполняем карточку данными
+                document.getElementById('order-number').textContent = order.id;
+                document.getElementById('order-status').textContent = order.status;
+                document.getElementById('order-from').textContent = order.from_address;
+                document.getElementById('order-to').textContent = order.to_address;
+                document.getElementById('order-price').textContent = order.price + ' руб.';
+
+                // Красим статус в зависимости от слова
+                const statusElement = document.getElementById('order-status');
+                if (order.status === 'Выполнен') statusElement.style.color = '#00f5d4';
+                else if (order.status === 'Новый') statusElement.style.color = '#fee440';
+                else statusElement.style.color = '#4cc9f0';
+
+                // Показываем контент, скрываем лоадер
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('order-content').style.display = 'block';
+
+            } catch (error) {
+                showError("Не удалось найти заказ. Проверьте правильность ссылки.");
+            }
+        }
+
+        function showError(text) {
+            document.getElementById('loading').style.display = 'none';
+            const errorEl = document.getElementById('error-message');
+            errorEl.style.display = 'block';
+            errorEl.textContent = text;
+        }
+
+        // Запускаем поиск при открытии страницы
+        fetchOrder();
+    </script>
+</body>
+</html>
