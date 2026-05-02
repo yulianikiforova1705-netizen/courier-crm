@@ -214,6 +214,8 @@ async function loadAccounting() {
             <p style="margin: 5px 0 0 0; color: #ef4444; font-weight: bold;">- ${e.amount} ₽</p>
         </div>
     `).join('') : '<p style="color: #64748b; text-align: center;">Расходов пока нет. Вы великолепны! 💰</p>';
+// 👇 ВОТ ЭТА СТРОЧКА ОЖИВИТ НАШ ГРАФИК!
+    drawFinanceChart();
 }
 
 async function addExpense() {
