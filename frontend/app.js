@@ -17,6 +17,7 @@ socket.on('update_data', () => {
     if (currentTab === 'active' || currentTab === 'archive') loadOrders();
     if (currentTab === 'accounting') loadAccounting();
     if (currentTab === 'plan') loadTasks();
+    drawFinanceChart();
 });
 
 // Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
@@ -425,4 +426,54 @@ const activeOrders = allOrders.filter(o => o.status === 'new' || o.status === 'i
 
 function closeMap() {
     document.getElementById('map-box').style.display = 'none';
+}
+// === ГРАФИК СТАТИСТИКИ (CHART.JS) ===
+let financeChartInstance = null; // Переменная для хранения графика
+
+async function drawFinanceChart() {
+    // 1. Скачиваем свежие данные
+    const allOrders = await apiCall('/api/orders');
+    
+    // 2. Считаем, сколько заказов в каком статусе
+    const completed = allOrders.filter(o => o.status === 'completed').length;
+    const inProgress = allOrders.filter(o => o.status === 'in_progress').length;
+    const newOrders = allOrders.filter(o => o.status === 'new').length;
+
+    // 3. Находим наш холст
+    const ctx = document.getElementById('financeChart');
+    if (!ctx) return;
+
+    // 4. Если график уже был нарисован, стираем его, чтобы нарисовать новый
+    if (financeChartInstance) {
+        financeChartInstance.destroy();
+    }
+
+    // 5. Рисуем красивый неоновый график!
+    financeChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Доставлено ✅', 'В пути 🚚', 'Ждет курьера ⏳'],
+            datasets: [{
+                data: [completed, inProgress, newOrders],
+                backgroundColor: [
+                    '#00f5d4', // Неоново-зеленый
+                    '#fee440', // Ярко-желтый
+                    '#f15bb5'  // Неоново-розовый
+                ],
+                borderWidth: 0, // Убираем рамки для стиля
+                hoverOffset: 10 // Эффект вылета при наведении
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#a0a0b0', // Цвет текста (под темную тему)
+                        font: { size: 14, family: 'Montserrat' }
+                    }
+                }
+            }
+        }
+    });
 }

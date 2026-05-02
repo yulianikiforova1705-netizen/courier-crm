@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://api-maps.yandex.ru/2.1/?apikey=0786a180-5d6c-4535-9c93-29ae69e59f8f&lang=ru_RU" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div id="login-screen" class="login-overlay" style="display: none;">
@@ -85,6 +86,10 @@
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
                 <span>💰 Доходы:</span>
                 <span id="acc-income" style="color: #10b981; font-weight: bold;">0 ₽</span>
+            <!-- Холст для графика -->
+<div style="margin-top: 20px; background: #1e1e24; padding: 15px; border-radius: 12px;">
+    <canvas id="financeChart"></canvas>
+</div>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
                 <span>📉 Расходы:</span>
