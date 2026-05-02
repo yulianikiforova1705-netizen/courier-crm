@@ -383,30 +383,38 @@ const activeOrders = allOrders.filter(o => o.status === 'new' || o.status === 'i
             return;
         }
 
-        // 5. Проходимся по каждому заказу и ставим точки
+       // 5. Проходимся по каждому заказу и ставим точки (с защитой от ошибок)
         for (const order of activeOrders) {
             try {
                 // Ищем координаты точки А (Откуда)
                 const pickupRes = await ymaps.geocode(order.pickup_address);
-                const pickupCoords = pickupRes.geoObjects.get(0).geometry.getCoordinates();
+                const pickupGeo = pickupRes.geoObjects.get(0);
                 
-                const pickupPlacemark = new ymaps.Placemark(pickupCoords, {
-                    balloonContent: `<b>Заказ #${order.id}</b><br>📦 Забрать: ${order.pickup_address}`
-                }, { preset: 'islands#redDotIcon' }); // Красная точка
-                
-                myMap.geoObjects.add(pickupPlacemark);
+                if (pickupGeo) { // Если Яндекс нашел адрес
+                    const pickupCoords = pickupGeo.geometry.getCoordinates();
+                    const pickupPlacemark = new ymaps.Placemark(pickupCoords, {
+                        balloonContent: `<b>Заказ #${order.id}</b><br>📦 Забрать: ${order.pickup_address}`
+                    }, { preset: 'islands#redDotIcon' });
+                    myMap.geoObjects.add(pickupPlacemark);
+                } else {
+                    console.warn(`Не найден адрес отправки: ${order.pickup_address}`);
+                }
 
                 // Ищем координаты точки Б (Куда)
                 const deliveryRes = await ymaps.geocode(order.delivery_address);
-                const deliveryCoords = deliveryRes.geoObjects.get(0).geometry.getCoordinates();
+                const deliveryGeo = deliveryRes.geoObjects.get(0);
                 
-                const deliveryPlacemark = new ymaps.Placemark(deliveryCoords, {
-                    balloonContent: `<b>Заказ #${order.id}</b><br>🚩 Доставить: ${order.delivery_address}`
-                }, { preset: 'islands#greenDotIcon' }); // Зеленая точка
-                
-                myMap.geoObjects.add(deliveryPlacemark);
+                if (deliveryGeo) { // Если Яндекс нашел адрес
+                    const deliveryCoords = deliveryGeo.geometry.getCoordinates();
+                    const deliveryPlacemark = new ymaps.Placemark(deliveryCoords, {
+                        balloonContent: `<b>Заказ #${order.id}</b><br>🚩 Доставить: ${order.delivery_address}`
+                    }, { preset: 'islands#greenDotIcon' });
+                    myMap.geoObjects.add(deliveryPlacemark);
+                } else {
+                    console.warn(`Не найден адрес доставки: ${order.delivery_address}`);
+                }
             } catch (err) {
-                console.error(`Не удалось найти адрес для заказа #${order.id}`, err);
+                console.error(`Ошибка при поиске координат для заказа #${order.id}`, err);
             }
         }
 
