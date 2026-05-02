@@ -1,7 +1,7 @@
 {
   "name": "Курьерская CRM",
   "short_name": "Моя CRM",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f4f4f9",
   "theme_color": "#333333",
