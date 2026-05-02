@@ -1,8 +1,62 @@
-self.addEventListener('install', (e) => {
-    console.log('[Service Worker] Установлен');
+// Название нашей "заначки" в памяти телефона
+const CACHE_NAME = 'trackflow-cache-v1';
+
+// Список файлов, которые нужны для работы сайта без интернета
+const ASSETS_TO_CACHE = [
+    './',
+    './index.html',
+    './style.css',
+    './app.js',
+    './manifest.json',
+    './icon-192.png',
+    './icon-512.png'
+];
+
+// 1. УСТАНОВКА: Скачиваем файлы при первом заходе на сайт
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            console.log('📦 Service Worker: Кэширую файлы для офлайна...');
+            return cache.addAll(ASSETS_TO_CACHE);
+        })
+    );
+    self.skipWaiting();
 });
 
-self.addEventListener('fetch', (e) => {
-    // Пока мы просто пропускаем все запросы в интернет как обычно, 
-    // чтобы не сломать работу нашей базы данных
+// 2. АКТИВАЦИЯ: Очищаем старый мусор, если мы обновили версию
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cache) => {
+                    if (cache !== CACHE_NAME) {
+                        return caches.delete(cache);
+                    }
+                })
+            );
+        })
+    );
+});
+
+// 3. ПЕРЕХВАТ ЗАПРОСОВ: Умная логика работы
+self.addEventListener('fetch', (event) => {
+    // Мы перехватываем только запросы на получение данных (GET)
+    if (event.request.method !== 'GET') return;
+
+    event.respondWith(
+        // Сначала всегда пытаемся сходить в интернет (Network First)
+        fetch(event.request)
+            .then((networkResponse) => {
+                // Если интернет есть, мы сохраняем свежие данные в кэш
+                return caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, networkResponse.clone());
+                    return networkResponse;
+                });
+            })
+            .catch(() => {
+                // 🔴 ИНТЕРНЕТА НЕТ! Достаем последние данные из "заначки"
+                console.log('📶 Нет интернета. Достаю данные из кэша:', event.request.url);
+                return caches.match(event.request);
+            })
+    );
 });
