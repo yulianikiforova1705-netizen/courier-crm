@@ -431,6 +431,7 @@ function closeMap() {
 let financeChartInstance = null; // Переменная для хранения графика
 
 async function drawFinanceChart() {
+    console.log('🚀 Рисую график финансов...');
     // 1. Скачиваем свежие данные
     const allOrders = await apiCall('/api/orders');
     
@@ -465,11 +466,13 @@ async function drawFinanceChart() {
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false, // <-- Говорим графику слушаться наших размеров
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#a0a0b0', // Цвет текста (под темную тему)
+                        color: '#a0a0b0',
                         font: { size: 14, family: 'Montserrat' }
                     }
                 }

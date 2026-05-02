@@ -86,9 +86,6 @@
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
                 <span>💰 Доходы:</span>
                 <span id="acc-income" style="color: #10b981; font-weight: bold;">0 ₽</span>
-            <!-- Холст для графика -->
-<div style="margin-top: 20px; background: #1e1e24; padding: 15px; border-radius: 12px;">
-    <canvas id="financeChart"></canvas>
 </div>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
@@ -110,7 +107,10 @@
         </div>
         <div id="expenses-list"></div>
     </div>
-
+<!-- Холст для графика -->
+<div style="margin-top: 30px; background: #1e1e24; padding: 15px; border-radius: 12px; height: 250px; position: relative;">
+    <canvas id="financeChart"></canvas>
+</div>
     <!-- ЭКРАН 3: ПЛАН ДНЯ -->
     <div id="plan-view" style="display: none;">
         <div class="card" style="border: 1px solid var(--accent);">
