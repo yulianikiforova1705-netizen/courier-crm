@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <!-- Подключаем манифест -->
+<link rel="manifest" href="/manifest.json">
+
+<!-- Запускаем Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log("Service Worker успешно зарегистрирован!"))
+      .catch((err) => console.log("Ошибка Service Worker:", err));
+  }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TrackFlow | Powered by V-System</title>
