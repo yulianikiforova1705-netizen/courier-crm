@@ -118,7 +118,7 @@ app.get('/api/track/:id', async (req, res) => {
         const orderId = req.params.id;
         
         // Ставим звездочку (*), чтобы взять ВСЕ колонки и не угадывать их названия
-        const result = await pool.query(
+        const result = await db.query(
             'SELECT * FROM orders WHERE id = $1',
             [orderId]
         );
