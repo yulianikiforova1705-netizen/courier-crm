@@ -3,7 +3,7 @@ require('dotenv').config();
 
 // Включаем polling, чтобы бот умел "слушать" нажатия на кнопки
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
-const CHAT_ID = process.env.CHAT_ID;
+const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 function sendOrderNotification(order) {
     const text = `🚨 <b>НОВЫЙ ЗАКАЗ #${order.id}</b>\n\n📍 Откуда: ${order.pickup}\n🏁 Куда: ${order.delivery}\n💰 Сумма: ${order.price} ₽`;
