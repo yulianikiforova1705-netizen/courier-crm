@@ -83,19 +83,27 @@
     <div id="accounting-view" style="display: none;">
         <div class="card" style="border: 1px solid var(--primary);">
             <h2 style="margin-top: 0; color: var(--primary); text-align: center;">📊 Финансовая сводка</h2>
+            
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
                 <span>💰 Доходы:</span>
                 <span id="acc-income" style="color: #10b981; font-weight: bold;">0 ₽</span>
-</div>
             </div>
+            
             <div style="display: flex; justify-content: space-between; font-size: 1.1em; margin-bottom: 10px;">
                 <span>📉 Расходы:</span>
                 <span id="acc-expense" style="color: #ef4444; font-weight: bold;">0 ₽</span>
             </div>
+            
             <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+            
             <div style="display: flex; justify-content: space-between; font-size: 1.3em;">
                 <span>💎 Чистая прибыль:</span>
                 <span id="acc-profit" style="color: var(--primary); font-weight: bold;">0 ₽</span>
+            </div>
+
+            <!-- Холст для графика (теперь он на своем месте!) -->
+            <div style="margin-top: 30px; background: #1e1e24; padding: 15px; border-radius: 12px; height: 250px; position: relative;">
+                <canvas id="financeChart"></canvas>
             </div>
         </div>
 
@@ -105,12 +113,9 @@
             <input type="number" id="expense-amount" placeholder="Сумма (₽)">
             <button class="btn" style="width: 100%; background: #ef4444; color: white; border: none; margin: 0;" onclick="addExpense()">Записать расход</button>
         </div>
+        
         <div id="expenses-list"></div>
     </div>
-<!-- Холст для графика -->
-<div style="margin-top: 30px; background: #1e1e24; padding: 15px; border-radius: 12px; height: 250px; position: relative;">
-    <canvas id="financeChart"></canvas>
-</div>
     <!-- ЭКРАН 3: ПЛАН ДНЯ -->
     <div id="plan-view" style="display: none;">
         <div class="card" style="border: 1px solid var(--accent);">
