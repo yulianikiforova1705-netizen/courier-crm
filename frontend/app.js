@@ -482,3 +482,61 @@ async function drawFinanceChart() {
         }
     });
 }
+// ==========================================
+// 📊 ЭКСПОРТ В EXCEL
+// ==========================================
+async function downloadExcelReport() {
+    showNotification('⏳ Собираем данные для отчета...');
+
+    // 1. Скачиваем свежие заказы с сервера
+    const orders = await apiCall('/api/orders');
+    if (!orders) return alert('Не удалось получить данные с сервера.');
+
+    // 2. Оставляем только те заказы, которые уже доставлены (completed)
+    const completedOrders = orders.filter(o => o.status === 'completed');
+
+    if (completedOrders.length === 0) {
+        return showNotification('Нет завершенных заказов для выгрузки!');
+    }
+
+    // 3. Форматируем данные: переводим их на русский язык для таблицы
+    const excelData = completedOrders.map(order => {
+        // Красиво форматируем дату завершения
+        const dateObj = new Date(order.completed_at);
+        const niceDate = !isNaN(dateObj) ? dateObj.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Неизвестно';
+
+        return {
+            'Номер заказа': order.id,
+            'Дата завершения': niceDate,
+            'Клиент': order.client_name,
+            'Откуда': order.pickup_address,
+            'Куда': order.delivery_address,
+            'Сумма (₽)': order.price
+        };
+    });
+
+    // 4. Магия SheetJS: создаем лист (worksheet) и книгу (workbook)
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    
+    // Настраиваем ширину колонок, чтобы текст не слипался
+    worksheet['!cols'] = [
+        { wch: 15 }, // Номер
+        { wch: 20 }, // Дата
+        { wch: 25 }, // Клиент
+        { wch: 35 }, // Откуда
+        { wch: 35 }, // Куда
+        { wch: 15 }  // Сумма
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Выполненные заказы");
+
+    // 5. Генерируем красивое имя файла с сегодняшней датой
+    const today = new Date().toLocaleDateString('ru-RU').replace(/\./g, '-');
+    const fileName = `Отчет_TrackFlow_${today}.xlsx`;
+
+    // 6. Скачиваем файл на компьютер/телефон
+    XLSX.writeFile(workbook, fileName);
+    
+    showNotification('✅ Отчет успешно скачан!');
+}
