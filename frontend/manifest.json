@@ -1,6 +1,6 @@
 {
-  "name": "Курьерская CRM",
-  "short_name": "Моя CRM",
+  "name": "TrackFlow CRM",
+  "short_name": "TrackFlow",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f4f4f9",
