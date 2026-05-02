@@ -159,18 +159,31 @@
 
                 const order = await response.json();
                 
-                // 3. Заполняем карточку данными
+               // 3. Заполняем карточку данными
                 document.getElementById('order-number').textContent = order.id;
-                document.getElementById('order-status').textContent = order.status;
-                document.getElementById('order-from').textContent = order.from_address;
-                document.getElementById('order-to').textContent = order.to_address;
-                document.getElementById('order-price').textContent = order.price + ' руб.';
+                
+                // Переводим статусы из базы данных на красивый русский
+                let statusText = order.status;
+                let statusColor = '#4cc9f0'; // Цвет по умолчанию (синий)
 
-                // Красим статус в зависимости от слова
+                if (order.status === 'in_progress') {
+                    statusText = 'В ПУТИ 🚚';
+                    statusColor = '#fee440'; // Желтый
+                } else if (order.status === 'completed') {
+                    statusText = 'ДОСТАВЛЕНО ✅';
+                    statusColor = '#00f5d4'; // Зеленый
+                } else if (order.status === 'new') {
+                    statusText = 'ЖДЕТ КУРЬЕРА ⏳';
+                }
+
                 const statusElement = document.getElementById('order-status');
-                if (order.status === 'Выполнен') statusElement.style.color = '#00f5d4';
-                else if (order.status === 'Новый') statusElement.style.color = '#fee440';
-                else statusElement.style.color = '#4cc9f0';
+                statusElement.textContent = statusText;
+                statusElement.style.color = statusColor;
+
+                // Используем правильные названия колонок из твоей базы!
+                document.getElementById('order-from').textContent = order.pickup_address;
+                document.getElementById('order-to').textContent = order.delivery_address;
+                document.getElementById('order-price').textContent = order.price + ' руб.';
 
                 // Показываем контент, скрываем лоадер
                 document.getElementById('loading').style.display = 'none';
