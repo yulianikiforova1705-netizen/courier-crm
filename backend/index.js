@@ -112,29 +112,27 @@ app.put('/api/tasks/:id/complete', async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Ошибка сервера' }); }
 });
-// Эндпоинт для отслеживания заказа клиентом (без пароля)
+// Эндпоинт для отслеживания заказа клиентом (улучшенный)
 app.get('/api/track/:id', async (req, res) => {
     try {
         const orderId = req.params.id;
         
-        // Ищем заказ в базе данных по его номеру (ID)
-        // Специально не отдаем всю информацию, только самое нужное для клиента
+        // Ставим звездочку (*), чтобы взять ВСЕ колонки и не угадывать их названия
         const result = await pool.query(
-            'SELECT id, from_address, to_address, status, price FROM orders WHERE id = $1',
+            'SELECT * FROM orders WHERE id = $1',
             [orderId]
         );
 
-        // Если заказ с таким номером не найден
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Заказ не найден' });
         }
 
-        // Отправляем данные заказа
         res.json(result.rows[0]);
         
     } catch (error) {
-        console.error('Ошибка при поиске заказа для трекинга:', error);
-        res.status(500).json({ error: 'Ошибка сервера' });
+        console.error('Детальная ошибка БД:', error);
+        // Теперь сервер прямо в браузер выведет причину ошибки!
+        res.status(500).json({ error: 'Ошибка базы данных: ' + error.message });
     }
 });
 // ==========================================
