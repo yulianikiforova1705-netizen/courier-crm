@@ -374,7 +374,9 @@ async function showMap() {
         });
 
         // 4. Берем только активные заказы (новые и в пути)
-        const activeOrders = orders.filter(o => o.status === 'new' || o.status === 'in_progress');
+        // 4. Скачиваем свежие заказы с сервера
+const allOrders = await apiCall('/api/orders'); 
+const activeOrders = allOrders.filter(o => o.status === 'new' || o.status === 'in_progress');
 
         if (activeOrders.length === 0) {
             alert('Нет активных заказов для отображения!');
