@@ -354,4 +354,65 @@ window.copyTrackingLink = function(orderId) {
         console.error('Ошибка копирования: ', err);
         alert('Не удалось скопировать ссылку 😔');
     });
-};
+};// === КАРТА ЯНДЕКСА ===
+let myMap;
+
+async function showMap() {
+    // 1. Показываем контейнер с картой
+    document.getElementById('map-box').style.display = 'block';
+
+    // 2. Если карта уже была открыта раньше, удаляем её, чтобы нарисовать свежую
+    if (myMap) {
+        myMap.destroy();
+    }
+
+    // 3. Ждем, пока Яндекс загрузит все свои скрипты
+    ymaps.ready(async function () {
+        myMap = new ymaps.Map("map", {
+            center: [55.751574, 37.573856], // По умолчанию центр Москвы
+            zoom: 10
+        });
+
+        // 4. Берем только активные заказы (новые и в пути)
+        const activeOrders = orders.filter(o => o.status === 'new' || o.status === 'in_progress');
+
+        if (activeOrders.length === 0) {
+            alert('Нет активных заказов для отображения!');
+            return;
+        }
+
+        // 5. Проходимся по каждому заказу и ставим точки
+        for (const order of activeOrders) {
+            try {
+                // Ищем координаты точки А (Откуда)
+                const pickupRes = await ymaps.geocode(order.pickup_address);
+                const pickupCoords = pickupRes.geoObjects.get(0).geometry.getCoordinates();
+                
+                const pickupPlacemark = new ymaps.Placemark(pickupCoords, {
+                    balloonContent: `<b>Заказ #${order.id}</b><br>📦 Забрать: ${order.pickup_address}`
+                }, { preset: 'islands#redDotIcon' }); // Красная точка
+                
+                myMap.geoObjects.add(pickupPlacemark);
+
+                // Ищем координаты точки Б (Куда)
+                const deliveryRes = await ymaps.geocode(order.delivery_address);
+                const deliveryCoords = deliveryRes.geoObjects.get(0).geometry.getCoordinates();
+                
+                const deliveryPlacemark = new ymaps.Placemark(deliveryCoords, {
+                    balloonContent: `<b>Заказ #${order.id}</b><br>🚩 Доставить: ${order.delivery_address}`
+                }, { preset: 'islands#greenDotIcon' }); // Зеленая точка
+                
+                myMap.geoObjects.add(deliveryPlacemark);
+            } catch (err) {
+                console.error(`Не удалось найти адрес для заказа #${order.id}`, err);
+            }
+        }
+
+        // 6. Автоматически отдаляем/приближаем карту, чтобы все точки влезли в экран
+        myMap.setBounds(myMap.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 20 });
+    });
+}
+
+function closeMap() {
+    document.getElementById('map-box').style.display = 'none';
+}
