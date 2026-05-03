@@ -94,7 +94,7 @@ app.post('/api/orders', async (req, res) => {
         sendOrderNotification({ id: newOrder.rows[0].id, pickup: pickup_address, delivery: delivery_address, price: numericPrice });
         
         io.emit('update_data'); 
-        io.emit('new_order_alert', pickup_address);
+        io.emit('new_order_alert', pickup_address); // Точно отправляем пуш!
         
         // 🔔 ИСПРАВЛЕНИЕ: Вызов пуша теперь ВНУТРИ функции создания заказа!
         await sendPushNotification('🚀 Новый заказ!', `Нужно забрать: ${pickup_address}`);
