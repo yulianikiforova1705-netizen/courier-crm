@@ -19,7 +19,7 @@ socket.on('update_data', () => {
     if (currentTab === 'plan') loadTasks();
     drawFinanceChart();
 });
-});
+
 
 // Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
 async function apiCall(endpoint, method = 'GET', body = null) {
