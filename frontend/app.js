@@ -2,6 +2,7 @@ import { initPushNotifications } from './push.js';
 import { API_URL, apiCall } from './api.js'; // 👈 ДОБАВЛЯЕМ ЭТО=========================================
 import { showNotification, initTheme, toggleTheme } from './ui.js';
 import { drawFinanceChart, drawProfitChart, downloadExcelReport } from './analytics.js';
+import { showMap, closeMap, buildSmartRoute } from './map.js';
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
@@ -379,45 +380,8 @@ function parseVoiceCommand(text) {
     document.getElementById('delivery').value = delivery ? delivery[1].trim() : '';
     document.getElementById('client').value = client ? client[1].trim() : text;
     showNotification(pickup || delivery ? "✨ Распознано!" : "🤔 Записал всё в 'Имя'.");
-}
-// ==========================================
-// 🗺️ УМНАЯ МАРШРУТИЗАЦИЯ (TSP Lite)
-// ==========================================
-async function buildSmartRoute() {
-    const orders = await apiCall('/api/orders');
-    if (!orders) return;
-
-    // Берем только активные заказы
-    const activeOrders = orders.filter(o => o.status !== 'completed');
-    
-    if (activeOrders.length === 0) {
-        return showNotification("Нет активных заказов для построения маршрута!");
-    }
-
-    let points = [];
-    
-    // 🧠 ИСПРАВЛЕННАЯ ЛОГИКА:
-    activeOrders.forEach(o => {
-        if (o.status === 'new') {
-            points.push(o.pickup_address);   // Точка А (забрать)
-            points.push(o.delivery_address); // Точка Б (отвезти)
-        } else if (o.status === 'in_progress') {
-            points.push(o.delivery_address); // Только Точка Б (т.к. уже забрали)
-        }
-    });
-
-    if (points.length === 0) {
-        return showNotification("Не удалось найти адреса для маршрута!");
-    }
-
-    // Секретный трюк Яндекса: склеиваем адреса через тильду (~)
-    const routeQuery = points.map(p => encodeURIComponent(p)).join('~');
-    
-    // Открываем Яндекс Карты с готовым мульти-маршрутом
-    window.open(`https://yandex.ru/maps/?rtext=${routeQuery}`, '_blank');
-    
-    showNotification("🗺️ Маршрут построен в новой вкладке!");
-}
+}    
+  
 // ==========================================
 // 🚀 ЗАПУСК И СИСТЕМНЫЕ ФОНОВЫЕ ПРОЦЕССЫ
 // ==========================================
@@ -455,78 +419,7 @@ window.copyTrackingLink = function(orderId) {
         console.error('Ошибка копирования: ', err);
         alert('Не удалось скопировать ссылку 😔');
     });
-};// === КАРТА ЯНДЕКСА ===
-let myMap;
-
-async function showMap() {
-    // 1. Показываем контейнер с картой
-    document.getElementById('map-box').style.display = 'block';
-
-    // 2. Если карта уже была открыта раньше, удаляем её, чтобы нарисовать свежую
-    if (myMap) {
-        myMap.destroy();
-    }
-
-    // 3. Ждем, пока Яндекс загрузит все свои скрипты
-    ymaps.ready(async function () {
-        myMap = new ymaps.Map("map", {
-            center: [55.751574, 37.573856], // По умолчанию центр Москвы
-            zoom: 10
-        });
-
-        // 4. Берем только активные заказы (новые и в пути)
-        // 4. Скачиваем свежие заказы с сервера
-const allOrders = await apiCall('/api/orders'); 
-const activeOrders = allOrders.filter(o => o.status === 'new' || o.status === 'in_progress');
-
-        if (activeOrders.length === 0) {
-            alert('Нет активных заказов для отображения!');
-            return;
-        }
-
-       // 5. Проходимся по каждому заказу и ставим точки (с защитой от ошибок)
-        for (const order of activeOrders) {
-            try {
-                // Ищем координаты точки А (Откуда)
-                const pickupRes = await ymaps.geocode(order.pickup_address);
-                const pickupGeo = pickupRes.geoObjects.get(0);
-                
-                if (pickupGeo) { // Если Яндекс нашел адрес
-                    const pickupCoords = pickupGeo.geometry.getCoordinates();
-                    const pickupPlacemark = new ymaps.Placemark(pickupCoords, {
-                        balloonContent: `<b>Заказ #${order.id}</b><br>📦 Забрать: ${order.pickup_address}`
-                    }, { preset: 'islands#redDotIcon' });
-                    myMap.geoObjects.add(pickupPlacemark);
-                } else {
-                    console.warn(`Не найден адрес отправки: ${order.pickup_address}`);
-                }
-
-                // Ищем координаты точки Б (Куда)
-                const deliveryRes = await ymaps.geocode(order.delivery_address);
-                const deliveryGeo = deliveryRes.geoObjects.get(0);
-                
-                if (deliveryGeo) { // Если Яндекс нашел адрес
-                    const deliveryCoords = deliveryGeo.geometry.getCoordinates();
-                    const deliveryPlacemark = new ymaps.Placemark(deliveryCoords, {
-                        balloonContent: `<b>Заказ #${order.id}</b><br>🚩 Доставить: ${order.delivery_address}`
-                    }, { preset: 'islands#greenDotIcon' });
-                    myMap.geoObjects.add(deliveryPlacemark);
-                } else {
-                    console.warn(`Не найден адрес доставки: ${order.delivery_address}`);
-                }
-            } catch (err) {
-                console.error(`Ошибка при поиске координат для заказа #${order.id}`, err);
-            }
-        }
-
-        // 6. Автоматически отдаляем/приближаем карту, чтобы все точки влезли в экран
-        myMap.setBounds(myMap.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 20 });
-    });
-}
-
-function closeMap() {
-    document.getElementById('map-box').style.display = 'none';
-}
+};
 
 // 🌉 МОСТ ДЛЯ HTML-КНОПОК (т.к. мы используем type="module")
 // ==========================================
