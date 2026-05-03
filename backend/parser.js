@@ -3,7 +3,7 @@ const pool = require('./db');
 const { sendOrderNotification } = require('./bot');
 
 // Добавили io в аргументы
-async function startParser(client, io) {
+async function startParser(client, io, sendPushNotification) {
     client.addEventHandler(async (event) => {
         const message = event.message;
         if (message && message.text) {
@@ -43,7 +43,14 @@ try {
                     io.emit('update_data');
                     io.emit('new_order_alert', pickup); // 👈 ВОТ ОНА, МАГИЯ! Сигнал для красивого уведомления
                 }
-
+// 👇 ВЫЗЫВАЕМ СИСТЕМНЫЙ PUSH ДЛЯ АЙФОНА!
+                if (sendPushNotification) {
+                    try {
+                        await sendPushNotification('🚀 Новый заказ!', `Нужно забрать: ${pickup}`);
+                    } catch(e) {
+                        console.error('Ошибка отправки пуша из парсера:', e);
+                    }
+                }
                 try {
                     await fetch('https://courier-crm-api.onrender.com/api/trigger-update', { method: 'POST' });
                 } catch(e) {}

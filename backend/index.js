@@ -196,6 +196,6 @@ server.listen(PORT, async () => {
         const client = new TelegramClient(new StringSession(process.env.SESSION_STRING || ""), parseInt(process.env.API_ID), process.env.API_HASH, { connectionRetries: 5 });
         await client.connect();
         console.log('✅ Юзербот успешно подключен!');
-        startParser(client, io); 
+        startParser(client, io, sendPushNotification); 
     } catch (err) { console.error('❌ Ошибка подключения Юзербота:', err.message); }
 });
