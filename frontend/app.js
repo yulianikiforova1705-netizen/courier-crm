@@ -1,26 +1,6 @@
 import { initPushNotifications } from './push.js';
 import { API_URL, apiCall } from './api.js'; // 👈 ДОБАВЛЯЕМ ЭТО=========================================
 import { showNotification, initTheme, toggleTheme } from './ui.js';
-// 🌉 МОСТ ДЛЯ HTML-КНОПОК (т.к. мы используем type="module")
-// ==========================================
-window.logout = logout;
-window.toggleTheme = toggleTheme;
-window.switchTab = switchTab;
-window.selectRole = selectRole;
-window.backToRoles = backToRoles;
-window.checkPassword = checkPassword;
-window.loginAsCourier = loginAsCourier;
-window.createOrder = createOrder;
-window.updateOrderStatus = updateOrderStatus;
-window.addExpense = addExpense;
-window.addTask = addTask;
-window.completeTask = completeTask;
-window.buildSmartRoute = buildSmartRoute;
-window.startVoiceInput = startVoiceInput;
-window.downloadExcelReport = downloadExcelReport;
-window.showMap = showMap;
-window.closeMap = closeMap;
-window.checkAuth = checkAuth;
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
@@ -55,8 +35,25 @@ socket.on('new_order_alert', (address) => {
 // ==========================================
 initTheme(); // 👈 Просто запускаем проверку темы из модуля ui.js
 
-let currentUserRole = null; // 'admin' или 'courier'
-// ... остальной код авторизации ...
+let currentUserRole = null;
+let currentCourierName = '';
+function checkAuth() {
+    const savedRole = localStorage.getItem('trackflow_role');
+    const savedName = localStorage.getItem('trackflow_name');
+
+    if (savedRole) {
+        currentUserRole = savedRole;
+        currentCourierName = savedName || '';
+        document.getElementById('login-screen').style.display = 'none';
+        applyRoleRestrictions();
+        loadOrders();
+    } else {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('role-selection').style.display = 'block';
+        document.getElementById('admin-login').style.display = 'none';
+        document.getElementById('courier-login').style.display = 'none';
+    }
+} // 👈 ВОТ ЭТА СКОБКА СПАСЕТ МИР!
 
 // Управление экранами входа
 function selectRole(role) {
@@ -720,3 +717,24 @@ async function downloadExcelReport() {
     
     showNotification('✅ Отчет успешно скачан!');
 }
+// 🌉 МОСТ ДЛЯ HTML-КНОПОК (т.к. мы используем type="module")
+// ==========================================
+window.logout = logout;
+window.toggleTheme = toggleTheme;
+window.switchTab = switchTab;
+window.selectRole = selectRole;
+window.backToRoles = backToRoles;
+window.checkPassword = checkPassword;
+window.loginAsCourier = loginAsCourier;
+window.createOrder = createOrder;
+window.updateOrderStatus = updateOrderStatus;
+window.addExpense = addExpense;
+window.addTask = addTask;
+window.completeTask = completeTask;
+window.buildSmartRoute = buildSmartRoute;
+window.startVoiceInput = startVoiceInput;
+window.downloadExcelReport = downloadExcelReport;
+window.showMap = showMap;
+window.closeMap = closeMap;
+window.checkAuth = checkAuth;
+checkAuth();
