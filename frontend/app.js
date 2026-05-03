@@ -5,6 +5,7 @@ import { drawFinanceChart, drawProfitChart, downloadExcelReport } from './analyt
 import { showMap, closeMap, buildSmartRoute } from './map.js';
 import { loadOrders, updateOrderStatus, createOrder } from './orders.js';
 import { loadAccounting, addExpense, loadTasks, addTask, completeTask } from './finances.js';
+import { startVoiceInput } from './voice.js';
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
@@ -146,32 +147,6 @@ function switchTab(tab) {
     }
 }
 
-// ==========================================
-// 🎙️ ГОЛОС И УВЕДОМЛЕНИЯ
-// ==========================================
-// === УМНЫЕ ВСПЛЫВАЮЩИЕ УВЕДОМЛЕНИЯ ===
-
-function startVoiceInput() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert("Браузер не поддерживает голос. Нужен Chrome!");
-    const rec = new SpeechRecognition(); rec.lang = 'ru-RU';
-    rec.onstart = () => showNotification("🎤 Говори! 'Откуда... Куда... Клиент...'");
-    rec.onresult = (e) => parseVoiceCommand(e.results[0][0].transcript.toLowerCase());
-    rec.start();
-}
-
-function parseVoiceCommand(text) {
-    const clean = text.replace(/[,.?!;:]/g, ' ').replace(/\s+/g, ' ').trim();
-    const pickup = clean.match(/(?:^|\s)откуда\s+(.*?)(?=\s+куда|\s+клиент|\s+имя|$)/i);
-    const delivery = clean.match(/(?:^|\s)куда\s+(.*?)(?=\s+откуда|\s+клиент|\s+имя|$)/i);
-    const client = clean.match(/(?:^|\s)(?:клиент|имя)\s+(.*?)(?=\s+откуда|\s+куда|$)/i);
-
-    document.getElementById('pickup').value = pickup ? pickup[1].trim() : '';
-    document.getElementById('delivery').value = delivery ? delivery[1].trim() : '';
-    document.getElementById('client').value = client ? client[1].trim() : text;
-    showNotification(pickup || delivery ? "✨ Распознано!" : "🤔 Записал всё в 'Имя'.");
-}    
-  
 // ==========================================
 // 🚀 ЗАПУСК И СИСТЕМНЫЕ ФОНОВЫЕ ПРОЦЕССЫ
 // ==========================================
