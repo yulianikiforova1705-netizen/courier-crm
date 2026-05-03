@@ -50,23 +50,86 @@ function toggleTheme() {
     themeBtn.innerText = isDark ? '☀️' : '🌙';
 }
 
+let currentUserRole = null; // 'admin' или 'courier'
+let currentCourierName = '';
+
 function checkAuth() {
-    if (localStorage.getItem('trackflow_auth') === 'true') {
+    const savedRole = localStorage.getItem('trackflow_role');
+    const savedName = localStorage.getItem('trackflow_name');
+
+    if (savedRole) {
+        // Если уже входили, восстанавливаем сессию
+        currentUserRole = savedRole;
+        currentCourierName = savedName || '';
         document.getElementById('login-screen').style.display = 'none';
+        applyRoleRestrictions();
         loadOrders();
     } else {
+        // Если нет — показываем экран выбора роли
         document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('role-selection').style.display = 'block';
+        document.getElementById('admin-login').style.display = 'none';
+        document.getElementById('courier-login').style.display = 'none';
     }
 }
+
+// Управление экранами входа
+function selectRole(role) {
+    document.getElementById('role-selection').style.display = 'none';
+    if (role === 'admin') document.getElementById('admin-login').style.display = 'block';
+    if (role === 'courier') document.getElementById('courier-login').style.display = 'block';
+}
+
+function backToRoles() {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('courier-login').style.display = 'none';
+    document.getElementById('role-selection').style.display = 'block';
+    document.getElementById('password-input').value = '';
+    document.getElementById('courier-name-input').value = '';
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('courier-error').style.display = 'none';
+}
+
+// Вход для Админа
 function checkPassword() {
     if (document.getElementById('password-input').value === ACCESS_PASSWORD) {
-        localStorage.setItem('trackflow_auth', 'true');
-        document.getElementById('login-screen').style.display = 'none';
-        loadOrders();
+        localStorage.setItem('trackflow_role', 'admin');
+        checkAuth();
     } else {
         document.getElementById('login-error').style.display = 'block';
         document.getElementById('password-input').value = '';
     }
+}
+
+// Вход для Курьера
+function loginAsCourier() {
+    const name = document.getElementById('courier-name-input').value.trim();
+    if (name) {
+        localStorage.setItem('trackflow_role', 'courier');
+        localStorage.setItem('trackflow_name', name);
+        checkAuth();
+    } else {
+        document.getElementById('courier-error').style.display = 'block';
+    }
+}
+
+// 🛡️ ГЛАВНАЯ ФУНКЦИЯ: Скрываем лишнее от курьера
+function applyRoleRestrictions() {
+    const isCourier = currentUserRole === 'courier';
+    
+    // Курьер не видит вкладки Финансы и План
+    document.getElementById('tab-accounting').style.display = isCourier ? 'none' : 'block';
+    document.getElementById('tab-plan').style.display = isCourier ? 'none' : 'block';
+    
+    // Курьер не может создавать заказы
+    document.getElementById('create-order-form').style.display = isCourier ? 'none' : 'block';
+}
+
+// Кнопка выхода из аккаунта
+function logout() {
+    localStorage.removeItem('trackflow_role');
+    localStorage.removeItem('trackflow_name');
+    location.reload(); // Перезагружаем страницу
 }
 
 // ==========================================
@@ -179,7 +242,7 @@ function createOrderCardHTML(order) {
                 <p style="margin-bottom: 0;">🏁 <strong>Куда:</strong> ${order.delivery_address}</p>
             </div>
             
-            <p>Статус: <span class="status">${order.status}</span></p>
+            <p>Статус: <span class="status">${order.status}</span> ${order.courier_name && order.status === 'in_progress' ? `(🏃 Везет: ${order.courier_name})` : ''}</p>
             ${timeInfo}
             ${photoHTML}
             ${actionBtn ? `<div style="margin-top: 15px;">${actionBtn}</div>` : ''}
@@ -194,14 +257,11 @@ function createOrderCardHTML(order) {
 async function updateOrderStatus(id, status) {
     let photoBase64 = null;
     
-    // Если заказ завершают, проверяем, прикрепил ли курьер фотку
     if (status === 'completed') {
         const fileInput = document.getElementById(`photo-${id}`);
         if (fileInput && fileInput.files.length > 0) {
             showNotification('⏳ Загружаем фото на сервер...');
             const file = fileInput.files[0];
-            
-            // Превращаем картинку в текст (Base64)
             photoBase64 = await new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(reader.result);
@@ -210,7 +270,13 @@ async function updateOrderStatus(id, status) {
         }
     }
 
-    await apiCall(`/api/orders/${id}/status`, 'PUT', { status, photo: photoBase64 });
+    // Отправляем запрос. Если это курьер, прикрепляем его имя к заказу!
+    await apiCall(`/api/orders/${id}/status`, 'PUT', { 
+        status, 
+        photo: photoBase64,
+        courier_name: currentUserRole === 'courier' ? currentCourierName : 'Админ'
+    });
+    
     loadOrders();
 }
 async function createOrder() {

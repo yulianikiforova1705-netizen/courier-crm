@@ -24,16 +24,38 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div id="login-screen" class="login-overlay" style="display: none;">
-        <div class="login-card">
-            <h1 class="brand-title" style="font-size: 2.2em; margin-bottom: 10px;">TrackFlow</h1>
-            <p style="color: #64748b; margin-bottom: 25px; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px;">Доступ ограничен</p>
-            <input type="password" id="password-input" placeholder="Введите пароль">
-            <button class="btn btn-map" onclick="checkPassword()">АВТОРИЗАЦИЯ</button>
-            <p id="login-error" style="color: var(--accent); display: none; margin-top: 15px; font-weight: 700; font-size: 0.9em;">ОШИБКА ДОСТУПА</p>
+   
+<!-- ЭКРАН ВХОДА (РОЛИ) -->
+    <div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div class="card" style="text-align: center; max-width: 350px; width: 90%;">
+            <h2 style="color: var(--primary);">TrackFlow CRM</h2>
+
+            <!-- Выбор роли -->
+            <div id="role-selection">
+                <p>Кто входит в систему?</p>
+                <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="selectRole('admin')">👑 Я Администратор</button>
+                <button class="btn" style="width: 100%; background: #3b82f6;" onclick="selectRole('courier')">🏃 Я Курьер</button>
+            </div>
+
+            <!-- Вход для Админа -->
+            <div id="admin-login" style="display: none;">
+                <p>Введите пароль:</p>
+                <input type="password" id="password-input" class="input" placeholder="Пароль админа">
+                <button class="btn" style="width: 100%;" onclick="checkPassword()">Войти</button>
+                <button class="btn" style="width: 100%; background: transparent; color: var(--text); border: 1px solid var(--border); margin-top: 10px;" onclick="backToRoles()">Назад</button>
+                <p id="login-error" style="color: #ef4444; display: none; margin-top: 10px;">Неверный пароль!</p>
+            </div>
+
+            <!-- Вход для Курьера -->
+            <div id="courier-login" style="display: none;">
+                <p>Как вас зовут?</p>
+                <input type="text" id="courier-name-input" class="input" placeholder="Например: Иван">
+                <button class="btn" style="width: 100%; background: #3b82f6;" onclick="loginAsCourier()">Начать смену</button>
+                <button class="btn" style="width: 100%; background: transparent; color: var(--text); border: 1px solid var(--border); margin-top: 10px;" onclick="backToRoles()">Назад</button>
+                <p id="courier-error" style="color: #ef4444; display: none; margin-top: 10px;">Пожалуйста, введите имя!</p>
+            </div>
         </div>
     </div>
-
     <div class="app-header">
         <h1 class="brand-title">TrackFlow</h1>
         <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Сменить тему">🌙</button>
