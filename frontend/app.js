@@ -5,6 +5,7 @@ const API_URL = 'https://courier-crm-api.onrender.com';
 const ACCESS_PASSWORD = "vsystem2026";
 let currentTab = 'active';
 let notifiedTasks = new Set();
+let notifiedNewOrders = new Set(); // Память для пуш-уведомлений о заказах
 
 // 🪄 МАГИЯ WEBSOCKETS: Слушаем сервер в реальном времени
 const socket = io(API_URL);
@@ -19,7 +20,10 @@ socket.on('update_data', () => {
     if (currentTab === 'plan') loadTasks();
     drawFinanceChart();
 });
-
+// Ловим сигнал о новом заказе от сервера и выводим красивую табличку в CRM
+socket.on('new_order_alert', (address) => {
+    showNotification(`🚀 <b>Новый заказ!</b> Нужно забрать: ${address}`);
+});
 
 // Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
 async function apiCall(endpoint, method = 'GET', body = null) {
