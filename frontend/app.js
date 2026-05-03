@@ -18,6 +18,9 @@ socket.on('update_data', () => {
     if (currentTab === 'accounting') loadAccounting();
     if (currentTab === 'plan') loadTasks();
     drawFinanceChart();
+    // 👇 ВОТ ЭТИ ДВЕ СТРОЧКИ ОЖИВЯТ НАШИ ГРАФИКИ!
+    drawFinanceChart();
+    drawProfitChart(); // Добавили линейный график!
 });
 
 // Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
@@ -519,6 +522,86 @@ async function drawFinanceChart() {
                         font: { size: 14, family: 'Montserrat' }
                     }
                 }
+            }
+        }
+    });
+}
+// === ЛИНЕЙНЫЙ ГРАФИК ПРИБЫЛИ ===
+let profitChartInstance = null;
+
+async function drawProfitChart() {
+    console.log('📈 Рисую график прибыли...');
+    const orders = await apiCall('/api/orders') || [];
+    const expenses = await apiCall('/api/expenses') || [];
+
+    const dailyData = {};
+
+    // 1. Считаем доходы по дням (только завершенные заказы)
+    orders.filter(o => o.status === 'completed').forEach(o => {
+        // Берем дату формата ГГГГ-ММ-ДД
+        const dateStr = new Date(o.completed_at || o.created_at).toISOString().split('T')[0];
+        if (!dailyData[dateStr]) dailyData[dateStr] = { income: 0, expense: 0 };
+        dailyData[dateStr].income += Number(o.price) || 0;
+    });
+
+    // 2. Считаем расходы по дням
+    expenses.forEach(e => {
+        const dateStr = new Date(e.created_at).toISOString().split('T')[0];
+        if (!dailyData[dateStr]) dailyData[dateStr] = { income: 0, expense: 0 };
+        dailyData[dateStr].expense += Number(e.amount) || 0;
+    });
+
+    // 3. Сортируем даты по порядку (от старых к новым)
+    const sortedDates = Object.keys(dailyData).sort();
+
+    const labels = [];
+    const profitData = [];
+
+    // 4. Формируем финальные данные для графика
+    sortedDates.forEach(date => {
+        // Превращаем '2026-05-03' в красивое '3 мая'
+        const niceDate = new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+        labels.push(niceDate);
+        
+        // Чистая прибыль за день = Доходы - Расходы
+        const dayProfit = dailyData[date].income - dailyData[date].expense;
+        profitData.push(dayProfit);
+    });
+
+    const ctx = document.getElementById('profitChart');
+    if (!ctx) return;
+
+    if (profitChartInstance) {
+        profitChartInstance.destroy();
+    }
+
+    // 5. Рисуем красоту!
+    profitChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Чистая прибыль (₽)',
+                data: profitData,
+                borderColor: '#00f5d4', // Неоново-зеленый
+                backgroundColor: 'rgba(0, 245, 212, 0.1)', // Полупрозрачная заливка под линией
+                borderWidth: 3,
+                tension: 0.4, // Делает линию плавной и изогнутой 🌊
+                fill: true,
+                pointBackgroundColor: '#1e1e2f',
+                pointBorderColor: '#00f5d4',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false } // Прячем лишнюю легенду
+            },
+            scales: {
+                y: { ticks: { color: '#a0a0b0' }, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+                x: { ticks: { color: '#a0a0b0' }, grid: { display: false } }
             }
         }
     });

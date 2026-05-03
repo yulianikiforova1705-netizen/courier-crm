@@ -117,7 +117,13 @@
             <input type="number" id="expense-amount" placeholder="Сумма (₽)">
             <button class="btn" style="width: 100%; background: #ef4444; color: white; border: none; margin: 0;" onclick="addExpense()">Записать расход</button>
         </div>
-        
+        <!-- НОВЫЙ БЛОК: ГРАФИК ДИНАМИКИ ПРИБЫЛИ -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="text-align: center; margin-top: 0; color: var(--text-main);">📈 Динамика прибыли</h3>
+                <div style="height: 250px; width: 100%;">
+                    <canvas id="profitChart"></canvas>
+                </div>
+            </div>
         <div id="expenses-list"></div>
     </div>
     <!-- ЭКРАН 3: ПЛАН ДНЯ -->
