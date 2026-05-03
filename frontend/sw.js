@@ -60,18 +60,33 @@ self.addEventListener('fetch', (event) => {
             })
     );
 });
+// 4. ПРИЕМ PUSH-УВЕДОМЛЕНИЙ
 self.addEventListener('push', (event) => {
-    const data = event.data.json();
+    // Страховка: если данных нет, ставим стандартный текст
+    let data = { title: 'TrackFlow', body: 'Новое уведомление!', url: '/' };
+    
+    if (event.data) {
+        try {
+            data = event.data.json(); // Пробуем прочитать данные от сервера
+        } catch (e) {
+            console.error('Не удалось прочитать Push-данные', e);
+        }
+    }
+
     const options = {
         body: data.body,
         icon: './icon-192.png',
-        vibrate: [100, 50, 100],
+        badge: './icon-192.png', // Маленькая иконка для телефона
+        vibrate: [200, 100, 200], // Двойная вибрация
         data: { url: data.url }
     };
+
     event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
+// 5. КЛИК ПО УВЕДОМЛЕНИЮ
 self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    event.waitUntil(clients.openWindow(event.notification.data.url));
+    event.notification.close(); // Закрываем всплывашку
+    // Открываем сайт (если url не передался, открываем главную страницу '/')
+    event.waitUntil(clients.openWindow(event.notification.data.url || '/'));
 });
