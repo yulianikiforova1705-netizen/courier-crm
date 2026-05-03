@@ -461,18 +461,25 @@ async function buildSmartRoute() {
 checkAuth();
 
 setInterval(async () => {
-    if (localStorage.getItem('trackflow_auth') !== 'true') return;
-    const now = new Date();
-    const tasks = await apiCall('/api/tasks') || [];
+    // 1. Новая проверка авторизации (теперь по ролям)
+    if (!localStorage.getItem('trackflow_role')) return;
     
+    const now = new Date();
+    // Получаем список задач
+    const tasks = await apiCall('/api/tasks') || [];
+
     tasks.forEach(t => {
+        // Устанавливаем правильный часовой пояс для времени
         const taskTime = new Date(t.remind_at.endsWith('Z') ? t.remind_at : t.remind_at + 'Z');
-        if (!t.is_completed && taskTime <= now && !notifiedTasks.has(t.id)) {
+        
+        // 2. Усиленная проверка: пропускаем завершенные задачи И завершенные заказы!
+        // Проверяем время и то, что мы еще не показывали эту табличку
+        if (!t.is_completed && t.status !== 'completed' && t.status !== 'archive' && taskTime <= now && !notifiedTasks.has(t.id)) {
             showNotification(`Время пришло: <b>${t.description}</b>`);
             notifiedTasks.add(t.id);
         }
     });
-}, 10000); // Интервал увеличен до 10 сек, чтобы не перегружать сервер
+}, 10000); // Проверяем каждые 10 секунд
 // Функция для копирования трекинг-ссылки клиенту
 window.copyTrackingLink = function(orderId) {
     // Формируем ту самую ссылку с правильным номером заказа
