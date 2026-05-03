@@ -57,34 +57,6 @@ function checkAuth() {
         document.getElementById('login-screen').style.display = 'flex';
     }
 }
-async function subscribeToPush() {
-    // 1. Проверяем, поддерживаются ли уведомления
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-
-    const registration = await navigator.serviceWorker.ready;
-    
-    // 2. Запрашиваем разрешение
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
-
-    // 3. Подписываемся (замени ПУБЛИЧНЫЙ_КЛЮЧ на свой из .env)
-    const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: 'ТВОЙ_VAPID_PUBLIC_KEY' 
-    });
-
-    // 4. Отправляем подписку на сервер, чтобы он её запомнил
-    await fetch(`${API_URL}/api/push/subscribe`, {
-        method: 'POST',
-        body: JSON.stringify(subscription),
-        headers: { 'Content-Type': 'application/json' }
-    });
-    
-    console.log('✅ Подписка на Push оформлена!');
-}
-
-// Запускаем проверку при входе
-subscribeToPush();
 function checkPassword() {
     if (document.getElementById('password-input').value === ACCESS_PASSWORD) {
         localStorage.setItem('trackflow_auth', 'true');
