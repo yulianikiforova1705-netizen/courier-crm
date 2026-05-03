@@ -28,6 +28,7 @@ db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at timestamp').c
 db.query(`CREATE TABLE IF NOT EXISTS expenses (id SERIAL PRIMARY KEY, description VARCHAR(255) NOT NULL, amount INTEGER NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`).catch(console.error);
 db.query(`CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, description VARCHAR(255) NOT NULL, remind_at TIMESTAMP NOT NULL, is_completed BOOLEAN DEFAULT FALSE)`).catch(console.error);
 db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS photo_proof TEXT').catch(console.error);
+db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_name VARCHAR(255)').catch(console.error);
 // ==========================================
 // 🔔 НАСТРОЙКА PUSH-УВЕДОМЛЕНИЙ
 // ==========================================
@@ -103,21 +104,22 @@ app.post('/api/orders', async (req, res) => {
         res.status(500).json({ error: 'Ошибка при создании заказа' }); 
     }
 });
-
 app.put('/api/orders/:id/status', async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, photo } = req.body; // Теперь мы ждем еще и фото
+        const { status, photo, courier_name } = req.body; // Ловим имя курьера
         
         let query;
         let params;
 
         if (status === 'completed') {
-            // Если заказ завершен, сохраняем время и фото
             query = `UPDATE orders SET status = $1, completed_at = CURRENT_TIMESTAMP, photo_proof = $3 WHERE id = $2 RETURNING *;`;
             params = [status, id, photo || null];
+        } else if (status === 'in_progress') {
+            // Запоминаем имя курьера, который взял заказ!
+            query = `UPDATE orders SET status = $1, courier_name = $3 WHERE id = $2 RETURNING *;`;
+            params = [status, id, courier_name || 'Неизвестный курьер'];
         } else {
-            // Если просто взяли в работу
             query = `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *;`;
             params = [status, id];
         }
@@ -130,6 +132,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
         res.status(500).json({ error: 'Ошибка при обновлении статуса' }); 
     }
 });
+
 // --- БУХГАЛТЕРИЯ ---
 app.get('/api/expenses', async (req, res) => {
     try {
