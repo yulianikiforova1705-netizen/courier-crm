@@ -41,6 +41,7 @@ try {
 
                 if (io) {
                     io.emit('update_data');
+                    io.emit('new_order_alert', pickup); // 👈 ВОТ ОНА, МАГИЯ! Сигнал для красивого уведомления
                 }
 
                 try {
