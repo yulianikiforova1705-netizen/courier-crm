@@ -15,9 +15,9 @@ export async function loadAccounting() {
     const expenseTotal = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
     const profit = income - expenseTotal;
 
-    const incomeEl = document.getElementById('total-income');
-    const expenseEl = document.getElementById('total-expense');
-    const profitEl = document.getElementById('net-profit');
+    const incomeEl = document.getElementById('acc-income');
+    const expenseEl = document.getElementById('acc-expense');
+    const profitEl = document.getElementById('acc-profit');
 
     if (incomeEl) incomeEl.innerText = `${income} ₽`;
     if (expenseEl) expenseEl.innerText = `${expenseTotal} ₽`;
