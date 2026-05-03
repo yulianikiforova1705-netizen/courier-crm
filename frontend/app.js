@@ -20,6 +20,7 @@ window.startVoiceInput = startVoiceInput;
 window.downloadExcelReport = downloadExcelReport;
 window.showMap = showMap;
 window.closeMap = closeMap;
+window.checkAuth = checkAuth;
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
