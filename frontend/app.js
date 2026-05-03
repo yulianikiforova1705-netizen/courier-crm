@@ -200,7 +200,14 @@ function createOrderCardHTML(order) {
     
     let actionBtn = '';
     if (order.status === 'new') {
-        actionBtn = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
+        const userRole = localStorage.getItem('trackflow_role');
+        
+        if (userRole === 'courier') {
+            actionBtn = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 ВЗЯТЬ В РАБОТУ</button>`;
+        } else {
+            actionBtn = `<div style="text-align: center; color: #a0aec0; padding: 10px; font-weight: bold;">⏳ Ожидает курьера</div>`;
+        }
+
     } else if (order.status === 'in_progress') {
         // Кнопка вызова камеры для телефона (или выбора файла на ПК)
         actionBtn = `
