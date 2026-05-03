@@ -18,9 +18,7 @@ socket.on('update_data', () => {
     if (currentTab === 'accounting') loadAccounting();
     if (currentTab === 'plan') loadTasks();
     drawFinanceChart();
-    // 👇 ВОТ ЭТИ ДВЕ СТРОЧКИ ОЖИВЯТ НАШИ ГРАФИКИ!
-    drawFinanceChart();
-    drawProfitChart(); // Добавили линейный график!
+});
 });
 
 // Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
@@ -258,8 +256,9 @@ async function loadAccounting() {
             <p style="margin: 5px 0 0 0; color: #ef4444; font-weight: bold;">- ${e.amount} ₽</p>
         </div>
     `).join('') : '<p style="color: #64748b; text-align: center;">Расходов пока нет. Вы великолепны! 💰</p>';
-// 👇 ВОТ ЭТА СТРОЧКА ОЖИВИТ НАШ ГРАФИК!
+// 👇 ВОТ ЭТИ ДВЕ СТРОЧКИ ОЖИВЯТ НАШИ ГРАФИКИ!
     drawFinanceChart();
+    drawProfitChart(); // Добавили линейный график сюда!
 }
 
 async function addExpense() {
