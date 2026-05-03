@@ -2,7 +2,7 @@
 
 export const API_URL = 'https://courier-crm-api.onrender.com';
 // Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
-async function apiCall(endpoint, method = 'GET', body = null) {
+export async function apiCall(endpoint, method = 'GET', body = null) {
     try {
         const options = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) options.body = JSON.stringify(body);
