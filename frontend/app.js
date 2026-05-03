@@ -1,5 +1,6 @@
 import { initPushNotifications } from './push.js';
 import { API_URL, apiCall } from './api.js'; // 👈 ДОБАВЛЯЕМ ЭТО=========================================
+import { showNotification, initTheme, toggleTheme } from './ui.js';
 // 🌉 МОСТ ДЛЯ HTML-КНОПОК (т.к. мы используем type="module")
 // ==========================================
 window.logout = logout;
@@ -48,45 +49,13 @@ socket.on('new_order_alert', (address) => {
     console.log('🚨 СЕРВЕР ПРИСЛАЛ СИГНАЛ О НОВОМ ЗАКАЗЕ:', address);
     showNotification(`🚀 <b>Новый заказ!</b> Нужно забрать: ${address}`);
 });
-
 // ==========================================
 // 🔐 АВТОРИЗАЦИЯ И ТЕМА
 // ==========================================
-const themeBtn = document.getElementById('theme-btn');
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark-theme');
-    themeBtn.innerText = '☀️';
-}
-
-function toggleTheme() {
-    document.body.classList.toggle('dark-theme');
-    const isDark = document.body.classList.contains('dark-theme');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    themeBtn.innerText = isDark ? '☀️' : '🌙';
-}
+initTheme(); // 👈 Просто запускаем проверку темы из модуля ui.js
 
 let currentUserRole = null; // 'admin' или 'courier'
-let currentCourierName = '';
-
-function checkAuth() {
-    const savedRole = localStorage.getItem('trackflow_role');
-    const savedName = localStorage.getItem('trackflow_name');
-
-    if (savedRole) {
-        // Если уже входили, восстанавливаем сессию
-        currentUserRole = savedRole;
-        currentCourierName = savedName || '';
-        document.getElementById('login-screen').style.display = 'none';
-        applyRoleRestrictions();
-        loadOrders();
-    } else {
-        // Если нет — показываем экран выбора роли
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('role-selection').style.display = 'block';
-        document.getElementById('admin-login').style.display = 'none';
-        document.getElementById('courier-login').style.display = 'none';
-    }
-}
+// ... остальной код авторизации ...
 
 // Управление экранами входа
 function selectRole(role) {
@@ -391,8 +360,6 @@ async function completeTask(id) { await apiCall(`/api/tasks/${id}/complete`, 'PU
 // 🎙️ ГОЛОС И УВЕДОМЛЕНИЯ
 // ==========================================
 // === УМНЫЕ ВСПЛЫВАЮЩИЕ УВЕДОМЛЕНИЯ ===
-function showNotification(message) {
-    const notif = document.createElement('div');
     
     // Стилизуем табличку (чтобы она была красивой и висела поверх всего)
     notif.style.cssText = `
