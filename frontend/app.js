@@ -1,9 +1,31 @@
 import { initPushNotifications } from './push.js';
 // ==========================================
+// 🌉 МОСТ ДЛЯ HTML-КНОПОК (т.к. мы используем type="module")
+// ==========================================
+window.logout = logout;
+window.toggleTheme = toggleTheme;
+window.switchTab = switchTab;
+window.selectRole = selectRole;
+window.backToRoles = backToRoles;
+window.checkPassword = checkPassword;
+window.loginAsCourier = loginAsCourier;
+window.createOrder = createOrder;
+window.updateOrderStatus = updateOrderStatus;
+window.addExpense = addExpense;
+window.addTask = addTask;
+window.completeTask = completeTask;
+window.buildSmartRoute = buildSmartRoute;
+window.startVoiceInput = startVoiceInput;
+window.downloadExcelReport = downloadExcelReport;
+window.showMap = showMap;
+window.closeMap = closeMap;
+// ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
 const API_URL = 'https://courier-crm-api.onrender.com';
 const ACCESS_PASSWORD = "vsystem2026";
+// 👇 Вставляем мост для пушей сюда, когда API_URL уже существует!
+window.initPushNotifications = () => initPushNotifications(API_URL); // это у тебя уже должно быть
 let currentTab = 'active';
 let notifiedTasks = new Set();
 let notifiedNewOrders = new Set(); // Память для пуш-уведомлений о заказах
