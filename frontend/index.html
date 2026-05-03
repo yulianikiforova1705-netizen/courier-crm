@@ -56,28 +56,30 @@
             </div>
         </div>
     </div>
-
-      <!-- КРАСИВАЯ ШАПКА ПРИЛОЖЕНИЯ -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border);">
+<!-- КРАСИВАЯ ШАПКА ПРИЛОЖЕНИЯ -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); gap: 10px;">
         
         <!-- Кнопка Выхода (Слева) -->
-        <button onclick="logout()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 0;">
-            🚪 Выйти
-        </button>
+        <div style="flex: 1; display: flex; justify-content: flex-start;">
+            <button onclick="logout()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; white-space: nowrap;">
+                🚪 Выйти
+            </button>
+        </div>
         
         <!-- Заголовок (По центру) -->
-        <h1 style="margin: 0; font-size: 24px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">
+        <h1 style="margin: 0; font-size: 20px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; font-weight: 800; text-align: center; white-space: nowrap;">
             TrackFlow
         </h1>
         
         <!-- Кнопка Темы (Справа) -->
-        <button id="theme-btn" onclick="toggleTheme()" style="background: transparent; border: none; font-size: 24px; cursor: pointer; padding: 0; margin: 0;">
-            🌙
-        </button>
+        <div style="flex: 1; display: flex; justify-content: flex-end;">
+            <button id="theme-btn" onclick="toggleTheme()" style="background: transparent; border: none; font-size: 22px; cursor: pointer; padding: 0;">
+                🌙
+            </button>
+        </div>
         
     </div>
-    
-
+     
     <!-- Управление и сетка вкладок -->
     <div style="margin-bottom: 15px;">
         <h2 style="margin: 0 0 15px 0;">📦 Управление</h2>
