@@ -1,5 +1,5 @@
 import { initPushNotifications } from './push.js';
-// ==========================================
+import { API_URL, apiCall } from './api.js'; // 👈 ДОБАВЛЯЕМ ЭТО=========================================
 // 🌉 МОСТ ДЛЯ HTML-КНОПОК (т.к. мы используем type="module")
 // ==========================================
 window.logout = logout;
@@ -49,19 +49,6 @@ socket.on('new_order_alert', (address) => {
     console.log('🚨 СЕРВЕР ПРИСЛАЛ СИГНАЛ О НОВОМ ЗАКАЗЕ:', address);
     showNotification(`🚀 <b>Новый заказ!</b> Нужно забрать: ${address}`);
 });
-
-// Универсальная функция для общения с сервером (чтобы не писать fetch 100 раз)
-async function apiCall(endpoint, method = 'GET', body = null) {
-    try {
-        const options = { method, headers: { 'Content-Type': 'application/json' } };
-        if (body) options.body = JSON.stringify(body);
-        const res = await fetch(`${API_URL}${endpoint}`, options);
-        return await res.json();
-    } catch (err) {
-        console.error(`Ошибка запроса к ${endpoint}:`, err);
-        return null;
-    }
-}
 
 // ==========================================
 // 🔐 АВТОРИЗАЦИЯ И ТЕМА
