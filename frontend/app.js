@@ -20,8 +20,9 @@ socket.on('update_data', () => {
     if (currentTab === 'plan') loadTasks();
     drawFinanceChart();
 });
-// Ловим сигнал о новом заказе от сервера и выводим красивую табличку в CRM
+// Ловим сигнал о новом заказе от сервера
 socket.on('new_order_alert', (address) => {
+    console.log('🚨 СЕРВЕР ПРИСЛАЛ СИГНАЛ О НОВОМ ЗАКАЗЕ:', address);
     showNotification(`🚀 <b>Новый заказ!</b> Нужно забрать: ${address}`);
 });
 
