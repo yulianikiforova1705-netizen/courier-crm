@@ -810,4 +810,4 @@ async function initPushNotifications() {
 }
 
 // Запускаем при загрузке
-initPushNotifications();
+//nitPushNotifications();
