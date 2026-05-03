@@ -22,7 +22,6 @@ window.closeMap = closeMap;
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
-const API_URL = 'https://courier-crm-api.onrender.com';
 const ACCESS_PASSWORD = "vsystem2026";
 // 👇 Вставляем мост для пушей сюда, когда API_URL уже существует!
 window.initPushNotifications = () => initPushNotifications(API_URL); // это у тебя уже должно быть
