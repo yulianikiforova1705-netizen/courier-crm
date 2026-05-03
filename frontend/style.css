@@ -260,3 +260,40 @@ input:focus {
     opacity: 0.5;
     text-decoration: line-through;
 }
+/* === СВЕТЛАЯ ТЕМА === */
+body.light-mode {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+body.light-mode .card, 
+body.light-mode .order-card,
+body.light-mode .app-footer {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+body.light-mode input, 
+body.light-mode select,
+body.light-mode textarea {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+body.light-mode .tab-btn {
+    border-color: #cbd5e1;
+    color: #64748b;
+}
+
+body.light-mode h1, 
+body.light-mode h2, 
+body.light-mode h3 {
+    color: #0f172a;
+}
+
+/* Фикс для кибер-подписи в светлой теме */
+body.light-mode .v-powered-text {
+    color: #94a3b8;
+}

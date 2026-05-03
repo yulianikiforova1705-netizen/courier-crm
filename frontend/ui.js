@@ -43,3 +43,27 @@ export function toggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     if (themeBtn) themeBtn.innerText = isDark ? '☀️' : '🌙';
 }
+// === ТЕМЫ ОФОРМЛЕНИЯ ===
+export function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    
+    // Сохраняем в память телефона/браузера
+    localStorage.setItem('trackflow_theme', isLight ? 'light' : 'dark');
+    
+    // Меняем иконку на кнопке
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.innerText = isLight ? '🌙' : '☀️';
+}
+
+export function initTheme() {
+    const savedTheme = localStorage.getItem('trackflow_theme');
+    const btn = document.getElementById('theme-btn');
+    
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        if (btn) btn.innerText = '🌙';
+    } else {
+        if (btn) btn.innerText = '☀️';
+    }
+}

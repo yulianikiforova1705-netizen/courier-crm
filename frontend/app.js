@@ -1,11 +1,12 @@
 import { initPushNotifications } from './push.js';
 import { API_URL, apiCall } from './api.js'; // 👈 ДОБАВЛЯЕМ ЭТО=========================================
-import { showNotification, initTheme, toggleTheme } from './ui.js';
+import { showNotification, toggleTheme, initTheme } from './ui.js';
 import { drawFinanceChart, drawProfitChart, downloadExcelReport } from './analytics.js';
 import { showMap, closeMap, buildSmartRoute } from './map.js';
 import { loadOrders, updateOrderStatus, createOrder } from './orders.js';
 import { loadAccounting, addExpense, loadTasks, addTask, completeTask } from './finances.js';
 import { startVoiceInput } from './voice.js';
+initTheme();
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
