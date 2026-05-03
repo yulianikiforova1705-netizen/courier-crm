@@ -152,8 +152,9 @@ function switchTab(tab) {
 
     if (tab === 'active' || tab === 'archive') {
         document.getElementById('orders-view').style.display = 'block';
-        // В Архиве прячем форму создания заказа!
-        document.getElementById('create-order-form').style.display = (tab === 'active') ? 'block' : 'none';
+       // В Архиве или для Курьера прячем форму создания заказа!
+        const userRole = localStorage.getItem('trackflow_role');
+        document.getElementById('create-order-form').style.display = (tab === 'active' && userRole !== 'courier') ? 'block' : 'none';
         loadOrders();
     } else if (tab === 'accounting') {
         document.getElementById('accounting-view').style.display = 'block';
