@@ -39,3 +39,19 @@ db.query(createTableQuery)
         console.error('❌ Ошибка при создании таблицы:', err);
         process.exit(1);
     });
+    // Создаем таблицу для Push-уведомлений
+db.query(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id SERIAL PRIMARY KEY,
+        subscription JSONB NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+`)
+.then(() => {
+    console.log('✅ Таблица push_subscriptions успешно создана!');
+    process.exit(0); // Теперь можно выходить
+})
+.catch(err => {
+    console.error('❌ Ошибка при создании таблицы push_subscriptions:', err);
+    process.exit(1);
+});

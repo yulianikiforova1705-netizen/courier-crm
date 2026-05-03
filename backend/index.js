@@ -57,6 +57,8 @@ app.post('/api/orders', async (req, res) => {
         res.status(201).json(newOrder.rows[0]);
     } catch (err) { res.status(500).json({ error: 'Ошибка при создании заказа' }); }
 });
+// Внутри app.post('/api/orders')
+await sendPushNotification('🚀 Новый заказ!', `Нужно забрать: ${pickup_address}`);
 
 app.put('/api/orders/:id/status', async (req, res) => {
     try {
@@ -152,3 +154,41 @@ server.listen(PORT, async () => {
         
     } catch (err) { console.error('❌ Ошибка подключения Юзербота:', err.message); }
 });
+const webPush = require('web-push');
+
+const webPush = require('web-push');
+
+// Настройка ключей (убедись, что они есть в .env)
+webPush.setVapidDetails(
+    'mailto:vsystem-admin@example.com', 
+    process.env.VAPID_PUBLIC_KEY, 
+    process.env.VAPID_PRIVATE_KEY
+);
+
+// Эндпоинт для сохранения подписки
+app.post('/api/push/subscribe', async (req, res) => {
+    try {
+        const subscription = req.body;
+        await db.query('INSERT INTO push_subscriptions (subscription) VALUES ($1)', [subscription]);
+        res.status(201).json({ success: true });
+    } catch (err) {
+        console.error('Ошибка сохранения подписки:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Универсальная функция рассылки пушей
+async function sendPushNotification(title, body) {
+    const subs = await db.query('SELECT subscription FROM push_subscriptions');
+    
+    subs.rows.forEach(s => {
+        const payload = JSON.stringify({ title, body, url: '/' });
+        webPush.sendNotification(s.subscription, payload)
+            .catch(err => {
+                if (err.statusCode === 410) {
+                    // Если подписка просрочена (курьер удалил приложение), удаляем её из базы
+                    db.query('DELETE FROM push_subscriptions WHERE subscription = $1', [s.subscription]);
+                }
+            });
+    });
+}
