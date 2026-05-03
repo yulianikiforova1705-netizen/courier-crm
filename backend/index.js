@@ -19,7 +19,7 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' })); // Увеличиваем лимит, чтобы картинки пролезали
 
 // --- НАСТРОЙКА БАЗЫ ДАННЫХ ---
 db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS price integer DEFAULT 0').catch(console.error);
@@ -27,7 +27,7 @@ db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS created_at timestamp DEFAU
 db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at timestamp').catch(console.error);
 db.query(`CREATE TABLE IF NOT EXISTS expenses (id SERIAL PRIMARY KEY, description VARCHAR(255) NOT NULL, amount INTEGER NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`).catch(console.error);
 db.query(`CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, description VARCHAR(255) NOT NULL, remind_at TIMESTAMP NOT NULL, is_completed BOOLEAN DEFAULT FALSE)`).catch(console.error);
-
+db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS photo_proof TEXT').catch(console.error);
 // ==========================================
 // 🔔 НАСТРОЙКА PUSH-УВЕДОМЛЕНИЙ
 // ==========================================
@@ -107,17 +107,29 @@ app.post('/api/orders', async (req, res) => {
 app.put('/api/orders/:id/status', async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-        const query = status === 'completed' 
-            ? `UPDATE orders SET status = $1, completed_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *;`
-            : `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *;`;
+        const { status, photo } = req.body; // Теперь мы ждем еще и фото
+        
+        let query;
+        let params;
 
-        const result = await db.query(query, [status, id]);
+        if (status === 'completed') {
+            // Если заказ завершен, сохраняем время и фото
+            query = `UPDATE orders SET status = $1, completed_at = CURRENT_TIMESTAMP, photo_proof = $3 WHERE id = $2 RETURNING *;`;
+            params = [status, id, photo || null];
+        } else {
+            // Если просто взяли в работу
+            query = `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *;`;
+            params = [status, id];
+        }
+
+        const result = await db.query(query, params);
         io.emit('update_data');
         res.json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: 'Ошибка при обновлении статуса' }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: 'Ошибка при обновлении статуса' }); 
+    }
 });
-
 // --- БУХГАЛТЕРИЯ ---
 app.get('/api/expenses', async (req, res) => {
     try {
