@@ -27,22 +27,6 @@ export function showNotification(message) {
     }, 5000); 
 }
 
-// === ТЕМА (СВЕТЛАЯ / ТЕМНАЯ) ===
-export function initTheme() {
-    const themeBtn = document.getElementById('theme-btn');
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-theme');
-        if (themeBtn) themeBtn.innerText = '☀️';
-    }
-}
-
-export function toggleTheme() {
-    const themeBtn = document.getElementById('theme-btn');
-    document.body.classList.toggle('dark-theme');
-    const isDark = document.body.classList.contains('dark-theme');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    if (themeBtn) themeBtn.innerText = isDark ? '☀️' : '🌙';
-}
 // === ТЕМЫ ОФОРМЛЕНИЯ ===
 export function toggleTheme() {
     document.body.classList.toggle('light-mode');
