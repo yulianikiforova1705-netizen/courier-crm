@@ -1,3 +1,4 @@
+import { initPushNotifications } from './push.js';
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
@@ -6,7 +7,8 @@ const ACCESS_PASSWORD = "vsystem2026";
 let currentTab = 'active';
 let notifiedTasks = new Set();
 let notifiedNewOrders = new Set(); // Память для пуш-уведомлений о заказах
-
+// Делаем функцию доступной для кнопок в HTML
+window.initPushNotifications = () => initPushNotifications(API_URL);
 // 🪄 МАГИЯ WEBSOCKETS: Слушаем сервер в реальном времени
 const socket = io(API_URL);
 
@@ -768,47 +770,3 @@ async function downloadExcelReport() {
     
     showNotification('✅ Отчет успешно скачан!');
 }
-// Вспомогательная функция для ключа
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-}
-
-async function initPushNotifications() {
-    if (!('serviceWorker' in navigator)) return;
-
-    const registration = await navigator.serviceWorker.ready;
-    
-    // Запрашиваем разрешение
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
-
-    // Твой публичный ключ
-    const publicKey = 'BHGbbImDIc6tpKcd9u36Qt7FzhZ7Qm-17ktmxAi1Y-PcSinodWiRliHVwXP8syM0CXl28bl1AyPPNgDxDfih-CE';
-    
-    try {
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey)
-        });
-
-        // Отправляем на сервер
-        await fetch(`${API_URL}/api/push/subscribe`, {
-            method: 'POST',
-            body: JSON.stringify(subscription),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        console.log('🔔 Push-уведомления активированы!');
-    } catch (err) {
-        console.error('Ошибка подписки на Push:', err);
-    }
-}
-
-// Запускаем при загрузке
-//nitPushNotifications();
