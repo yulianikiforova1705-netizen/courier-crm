@@ -130,8 +130,32 @@ function createOrderCardHTML(order) {
     const routeText = order.status === 'new' ? '📍 Показать откуда забрать' : '🏁 Показать куда доставить';
     
     let actionBtn = '';
-    if (order.status === 'new') actionBtn = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
-    if (order.status === 'in_progress') actionBtn = `<button class="btn btn-complete" onclick="updateOrderStatus(${order.id}, 'completed')">🟢 Доставлено</button>`;
+    if (order.status === 'new') {
+        actionBtn = `<button class="btn" onclick="updateOrderStatus(${order.id}, 'in_progress')">🟡 Взять в работу</button>`;
+    } else if (order.status === 'in_progress') {
+        // Кнопка вызова камеры для телефона (или выбора файла на ПК)
+        actionBtn = `
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <label class="btn" style="background: #3b82f6; cursor: pointer; flex: 1; text-align: center; margin: 0; padding: 12px 0;">
+                    📸 Фото
+                    <input type="file" id="photo-${order.id}" accept="image/*" capture="environment" style="display: none;">
+                </label>
+                <button class="btn btn-complete" style="flex: 2; margin: 0;" onclick="updateOrderStatus(${order.id}, 'completed')">🟢 Доставлено</button>
+            </div>
+            <p style="font-size: 0.75em; color: #64748b; margin-top: 5px; text-align: center;">*Сначала выбери фото (по желанию), затем жми Доставлено</p>
+        `;
+    }
+
+    // Если фото есть в базе, показываем его!
+    let photoHTML = '';
+    if (order.photo_proof) {
+        photoHTML = `
+            <div style="margin-top: 15px; text-align: center;">
+                <p style="margin-bottom: 5px; font-size: 0.9em; color: #64748b;">📸 Фото доставки:</p>
+                <img src="${order.photo_proof}" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+            </div>
+        `;
+    }
 
     let timeInfo = '';
     if (isCompleted && order.created_at && order.completed_at) {
@@ -156,6 +180,7 @@ function createOrderCardHTML(order) {
             
             <p>Статус: <span class="status">${order.status}</span></p>
             ${timeInfo}
+            ${photoHTML}
             ${actionBtn ? `<div style="margin-top: 15px;">${actionBtn}</div>` : ''}
             ${!isCompleted ? `<div style="margin-top: 10px;"><a class="btn btn-map" href="${yandexUrl}" target="_blank">${routeText}</a></div>` : ''}
             <button onclick="copyTrackingLink(${order.id})" style="background: transparent; color: #a0a0b0; border: 1px dashed #a0a0b0; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-family: inherit; font-size: 12px;">
@@ -166,10 +191,27 @@ function createOrderCardHTML(order) {
 }
 
 async function updateOrderStatus(id, status) {
-    await apiCall(`/api/orders/${id}/status`, 'PUT', { status });
+    let photoBase64 = null;
+    
+    // Если заказ завершают, проверяем, прикрепил ли курьер фотку
+    if (status === 'completed') {
+        const fileInput = document.getElementById(`photo-${id}`);
+        if (fileInput && fileInput.files.length > 0) {
+            showNotification('⏳ Загружаем фото на сервер...');
+            const file = fileInput.files[0];
+            
+            // Превращаем картинку в текст (Base64)
+            photoBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        }
+    }
+
+    await apiCall(`/api/orders/${id}/status`, 'PUT', { status, photo: photoBase64 });
     loadOrders();
 }
-
 async function createOrder() {
     const pickup = document.getElementById('pickup').value;
     const delivery = document.getElementById('delivery').value;
