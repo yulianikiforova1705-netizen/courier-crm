@@ -360,32 +360,6 @@ async function completeTask(id) { await apiCall(`/api/tasks/${id}/complete`, 'PU
 // 🎙️ ГОЛОС И УВЕДОМЛЕНИЯ
 // ==========================================
 // === УМНЫЕ ВСПЛЫВАЮЩИЕ УВЕДОМЛЕНИЯ ===
-    
-    // Стилизуем табличку (чтобы она была красивой и висела поверх всего)
-    notif.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: var(--card-bg);
-        border-left: 4px solid var(--accent);
-        color: var(--text-main);
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        z-index: 10000;
-        transition: opacity 0.5s ease;
-    `;
-    
-    notif.innerHTML = message;
-    document.body.appendChild(notif);
-
-    // Магия: через 5 секунд табличка начнет плавно растворяться...
-    setTimeout(() => {
-        notif.style.opacity = '0';
-        // ...а еще через полсекунды полностью удалится из системы!
-        setTimeout(() => notif.remove(), 500);
-    }, 5000); 
-}
 
 function startVoiceInput() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
