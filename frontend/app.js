@@ -4,6 +4,7 @@ import { showNotification, initTheme, toggleTheme } from './ui.js';
 import { drawFinanceChart, drawProfitChart, downloadExcelReport } from './analytics.js';
 import { showMap, closeMap, buildSmartRoute } from './map.js';
 import { loadOrders, updateOrderStatus, createOrder } from './orders.js';
+import { loadAccounting, addExpense, loadTasks, addTask, completeTask } from './finances.js';
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
@@ -146,69 +147,6 @@ function switchTab(tab) {
 }
 
 // ==========================================
-// 💰 ФИНАНСЫ И ПЛАНЕР
-// ==========================================
-async function loadAccounting() {
-    const orders = await apiCall('/api/orders') || [];
-    const expenses = await apiCall('/api/expenses') || [];
-
-    const income = orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + (Number(o.price) || 0), 0);
-    const expense = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-
-    document.getElementById('acc-income').innerText = `${income} ₽`;
-    document.getElementById('acc-expense').innerText = `${expense} ₽`;
-    document.getElementById('acc-profit').innerText = `${income - expense} ₽`;
-
-    const list = document.getElementById('expenses-list');
-    list.innerHTML = expenses.length ? expenses.map(e => `
-        <div class="card">
-            <p style="margin: 0; font-size: 1.1em;">💸 <strong>${e.description}</strong></p>
-            <p style="margin: 5px 0 0 0; color: #ef4444; font-weight: bold;">- ${e.amount} ₽</p>
-        </div>
-    `).join('') : '<p style="color: #64748b; text-align: center;">Расходов пока нет. Вы великолепны! 💰</p>';
-// 👇 ВОТ ЭТИ ДВЕ СТРОЧКИ ОЖИВЯТ НАШИ ГРАФИКИ!
-    drawFinanceChart();
-    drawProfitChart(); // Добавили линейный график сюда!
-}
-
-async function addExpense() {
-    const desc = document.getElementById('expense-desc').value;
-    const amount = document.getElementById('expense-amount').value;
-    if (!desc || !amount) return alert('Заполни поля!');
-    
-    await apiCall('/api/expenses', 'POST', { description: desc, amount });
-    document.getElementById('expense-desc').value = '';
-    document.getElementById('expense-amount').value = '';
-    loadAccounting();
-}
-
-async function loadTasks() {
-    const tasks = await apiCall('/api/tasks') || [];
-    const list = document.getElementById('tasks-list');
-    
-    list.innerHTML = tasks.length ? tasks.map(t => `
-        <div class="task-item ${t.is_completed ? 'task-done' : ''}">
-            <div>
-                <strong style="color: var(--primary);">${new Date((t.remind_at.endsWith('Z') ? t.remind_at : t.remind_at + 'Z')).toLocaleString('ru-RU', {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'})}</strong><br>
-                <span>${t.description}</span>
-            </div>
-            <div>${!t.is_completed ? `<button class="btn btn-complete" style="padding: 6px 12px;" onclick="completeTask(${t.id})">✔</button>` : ''}</div>
-        </div>
-    `).join('') : '<p style="color: #64748b; text-align: center;">План чист. Можно отдыхать!</p>';
-}
-
-async function addTask() {
-    const desc = document.getElementById('task-desc').value;
-    const time = document.getElementById('task-time').value;
-    if (!desc || !time) return alert('Заполни поля!');
-    await apiCall('/api/tasks', 'POST', { description: desc, remind_at: new Date(time).toISOString() });
-    document.getElementById('task-desc').value = ''; document.getElementById('task-time').value = '';
-    loadTasks();
-}
-
-async function completeTask(id) { await apiCall(`/api/tasks/${id}/complete`, 'PUT'); loadTasks(); }
-
-// ==========================================
 // 🎙️ ГОЛОС И УВЕДОМЛЕНИЯ
 // ==========================================
 // === УМНЫЕ ВСПЛЫВАЮЩИЕ УВЕДОМЛЕНИЯ ===
@@ -284,6 +222,7 @@ window.checkPassword = checkPassword;
 window.loginAsCourier = loginAsCourier;
 window.createOrder = createOrder;
 window.updateOrderStatus = updateOrderStatus;
+window.loadTasks = loadTasks;
 window.addExpense = addExpense;
 window.addTask = addTask;
 window.completeTask = completeTask;
