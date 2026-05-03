@@ -6,6 +6,7 @@ const { startParser } = require('./parser');
 const { sendOrderNotification } = require('./bot'); 
 const { TelegramClient } = require('telegram');
 const { StringSession } = require('telegram/sessions');
+const webPush = require('web-push'); // 🔔 ПЕРЕНЕСЛИ СЮДА
 
 // === ДОБАВЛЯЕМ МАГИЮ WEBSOCKETS ===
 const http = require('http');
@@ -14,7 +15,6 @@ const { Server } = require('socket.io');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Создаем сервер, который умеет работать и с обычными запросами, и с сокетами
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
@@ -28,6 +28,45 @@ db.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at timestamp').c
 db.query(`CREATE TABLE IF NOT EXISTS expenses (id SERIAL PRIMARY KEY, description VARCHAR(255) NOT NULL, amount INTEGER NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`).catch(console.error);
 db.query(`CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, description VARCHAR(255) NOT NULL, remind_at TIMESTAMP NOT NULL, is_completed BOOLEAN DEFAULT FALSE)`).catch(console.error);
 
+// ==========================================
+// 🔔 НАСТРОЙКА PUSH-УВЕДОМЛЕНИЙ
+// ==========================================
+webPush.setVapidDetails(
+    'mailto:vsystem-admin@example.com', 
+    process.env.VAPID_PUBLIC_KEY, 
+    process.env.VAPID_PRIVATE_KEY
+);
+
+// Универсальная функция рассылки пушей
+async function sendPushNotification(title, body) {
+    try {
+        const subs = await db.query('SELECT subscription FROM push_subscriptions');
+        subs.rows.forEach(s => {
+            const payload = JSON.stringify({ title, body, url: '/' });
+            webPush.sendNotification(s.subscription, payload)
+                .catch(err => {
+                    if (err.statusCode === 410) {
+                        db.query('DELETE FROM push_subscriptions WHERE subscription = $1', [s.subscription]);
+                    }
+                });
+        });
+    } catch (error) {
+        console.error('Ошибка при рассылке пушей:', error);
+    }
+}
+
+app.post('/api/push/subscribe', async (req, res) => {
+    try {
+        const subscription = req.body;
+        await db.query('INSERT INTO push_subscriptions (subscription) VALUES ($1)', [subscription]);
+        res.status(201).json({ success: true });
+    } catch (err) {
+        console.error('Ошибка сохранения подписки:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+
 // --- МАРШРУТЫ API ---
 
 app.get('/api/orders', async (req, res) => {
@@ -36,9 +75,9 @@ app.get('/api/orders', async (req, res) => {
         res.json(result.rows);
     } catch (err) { res.status(500).json({ error: 'Ошибка сервера' }); }
 });
-// --- СЕКРЕТНЫЙ МАРШРУТ ДЛЯ ШПИОНА ---
+
 app.post('/api/trigger-update', (req, res) => {
-    io.emit('update_data'); // Render кричит фронтенду обновиться!
+    io.emit('update_data');
     res.json({ success: true });
 });
 
@@ -53,12 +92,17 @@ app.post('/api/orders', async (req, res) => {
         
         sendOrderNotification({ id: newOrder.rows[0].id, pickup: pickup_address, delivery: delivery_address, price: numericPrice });
         
-        io.emit('update_data'); // 📢 КРИЧИМ ВСЕМ: ДАННЫЕ ОБНОВИЛИСЬ!
+        io.emit('update_data'); 
+        
+        // 🔔 ИСПРАВЛЕНИЕ: Вызов пуша теперь ВНУТРИ функции создания заказа!
+        await sendPushNotification('🚀 Новый заказ!', `Нужно забрать: ${pickup_address}`);
+        
         res.status(201).json(newOrder.rows[0]);
-    } catch (err) { res.status(500).json({ error: 'Ошибка при создании заказа' }); }
+    } catch (err) { 
+        console.error(err); // Добавил вывод ошибки в консоль, чтобы было легче искать баги
+        res.status(500).json({ error: 'Ошибка при создании заказа' }); 
+    }
 });
-// Внутри app.post('/api/orders')
-await sendPushNotification('🚀 Новый заказ!', `Нужно забрать: ${pickup_address}`);
 
 app.put('/api/orders/:id/status', async (req, res) => {
     try {
@@ -69,8 +113,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
             : `UPDATE orders SET status = $1 WHERE id = $2 RETURNING *;`;
 
         const result = await db.query(query, [status, id]);
-        
-        io.emit('update_data'); // 📢 КРИЧИМ ВСЕМ: ДАННЫЕ ОБНОВИЛИСЬ!
+        io.emit('update_data');
         res.json(result.rows[0]);
     } catch (err) { res.status(500).json({ error: 'Ошибка при обновлении статуса' }); }
 });
@@ -86,7 +129,7 @@ app.get('/api/expenses', async (req, res) => {
 app.post('/api/expenses', async (req, res) => {
     try {
         const result = await db.query('INSERT INTO expenses (description, amount) VALUES ($1, $2) RETURNING *', [req.body.description, parseInt(req.body.amount) || 0]);
-        io.emit('update_data'); // 📢 КРИЧИМ ВСЕМ: ДАННЫЕ ОБНОВИЛИСЬ!
+        io.emit('update_data');
         res.status(201).json(result.rows[0]);
     } catch (err) { res.status(500).json({ error: 'Ошибка сервера' }); }
 });
@@ -102,7 +145,7 @@ app.get('/api/tasks', async (req, res) => {
 app.post('/api/tasks', async (req, res) => {
     try {
         const result = await db.query('INSERT INTO tasks (description, remind_at) VALUES ($1, $2) RETURNING *', [req.body.description, req.body.remind_at]);
-        io.emit('update_data'); // 📢 КРИЧИМ ВСЕМ: ДАННЫЕ ОБНОВИЛИСЬ!
+        io.emit('update_data');
         res.status(201).json(result.rows[0]);
     } catch (err) { res.status(500).json({ error: 'Ошибка сервера' }); }
 });
@@ -110,85 +153,33 @@ app.post('/api/tasks', async (req, res) => {
 app.put('/api/tasks/:id/complete', async (req, res) => {
     try {
         await db.query('UPDATE tasks SET is_completed = TRUE WHERE id = $1', [req.params.id]);
-        io.emit('update_data'); // 📢 КРИЧИМ ВСЕМ: ДАННЫЕ ОБНОВИЛИСЬ!
+        io.emit('update_data');
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: 'Ошибка сервера' }); }
 });
-// Эндпоинт для отслеживания заказа клиентом (улучшенный)
+
+// Эндпоинт для отслеживания заказа клиентом
 app.get('/api/track/:id', async (req, res) => {
     try {
         const orderId = req.params.id;
-        
-        // Ставим звездочку (*), чтобы взять ВСЕ колонки и не угадывать их названия
-        const result = await db.query(
-            'SELECT * FROM orders WHERE id = $1',
-            [orderId]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Заказ не найден' });
-        }
-
+        const result = await db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Заказ не найден' });
         res.json(result.rows[0]);
-        
     } catch (error) {
-        console.error('Детальная ошибка БД:', error);
-        // Теперь сервер прямо в браузер выведет причину ошибки!
         res.status(500).json({ error: 'Ошибка базы данных: ' + error.message });
     }
 });
+
 // ==========================================
 // ЗАПУСК СЕРВЕРА И ШПИОНА 🚀
 // ==========================================
-// Обрати внимание: теперь мы запускаем server.listen вместо app.listen
 server.listen(PORT, async () => {
     console.log(`🌐 Сервер работает на порту ${PORT}`);
     
     try {
         const client = new TelegramClient(new StringSession(process.env.SESSION_STRING || ""), parseInt(process.env.API_ID), process.env.API_HASH, { connectionRetries: 5 });
         await client.connect();
-        console.log('✅ Юзербот успешно подключен и готов перехватывать заказы!');
-        
-        // ПЕРЕДАЕМ НАШ io (громкоговоритель) В ПАРСЕР
+        console.log('✅ Юзербот успешно подключен!');
         startParser(client, io); 
-        
     } catch (err) { console.error('❌ Ошибка подключения Юзербота:', err.message); }
 });
-const webPush = require('web-push');
-
-const webPush = require('web-push');
-
-// Настройка ключей (убедись, что они есть в .env)
-webPush.setVapidDetails(
-    'mailto:vsystem-admin@example.com', 
-    process.env.VAPID_PUBLIC_KEY, 
-    process.env.VAPID_PRIVATE_KEY
-);
-
-// Эндпоинт для сохранения подписки
-app.post('/api/push/subscribe', async (req, res) => {
-    try {
-        const subscription = req.body;
-        await db.query('INSERT INTO push_subscriptions (subscription) VALUES ($1)', [subscription]);
-        res.status(201).json({ success: true });
-    } catch (err) {
-        console.error('Ошибка сохранения подписки:', err);
-        res.status(500).json({ error: 'Ошибка сервера' });
-    }
-});
-
-// Универсальная функция рассылки пушей
-async function sendPushNotification(title, body) {
-    const subs = await db.query('SELECT subscription FROM push_subscriptions');
-    
-    subs.rows.forEach(s => {
-        const payload = JSON.stringify({ title, body, url: '/' });
-        webPush.sendNotification(s.subscription, payload)
-            .catch(err => {
-                if (err.statusCode === 410) {
-                    // Если подписка просрочена (курьер удалил приложение), удаляем её из базы
-                    db.query('DELETE FROM push_subscriptions WHERE subscription = $1', [s.subscription]);
-                }
-            });
-    });
-}
