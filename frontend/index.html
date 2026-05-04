@@ -211,9 +211,10 @@
         <label style="display: block; margin-top: 15px; margin-bottom: 5px; font-size: 0.9em; color: #64748b;">Пароль</label>
         <input type="password" id="profile-pass" placeholder="Новый пароль (оставьте пустым, если не меняете)">
 
-        <!-- Кнопка сохранения -->
+        <!-- Кнопка сохранения (в самом низу профиля) -->
         <button class="btn btn-map" style="margin-top: 20px;" onclick="saveProfile()">Сохранить изменения</button>
-    </div>
+    </div> <!-- Закрывает блок <div class="card"> -->
+</div> <!-- 👈 А ВОТ ЭТОТ ТЕГ МЫ ДОБАВЛЯЕМ! Он закрывает <div id="settings-screen"> -->
     <!-- ПОДВАЛ (Теперь всегда строго внизу) -->
     <div class="app-footer">
     <div class="v-signature-container">
@@ -283,6 +284,6 @@
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script type="module" src="app.js"></script>
 
-</div>
+
 </body>
 </html>
