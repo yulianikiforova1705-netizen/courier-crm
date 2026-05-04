@@ -84,7 +84,7 @@
     🔔 Включить уведомления
 </button>
     <!-- Управление и сетка вкладок -->
-    <div style="margin-bottom: 15px;">
+    <div id="tabs-container" style="margin-bottom: 15px;"></div>
         <h2 style="margin: 0 0 15px 0;">📦 Управление</h2>
         <div class="tabs">
     <button class="tab-btn active" id="tab-active" onclick="switchTab('active')">🚚 В работе</button>
@@ -95,7 +95,8 @@
     </div>
 
    <!-- ЭКРАН 1: ЗАКАЗЫ -->
-    <div id="orders-view">
+    <div id="orders-view" class="screen">
+    </div>
        <!-- Блок создания заказа (Скрывается в архиве) -->
         <div class="card" id="create-order-form">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -125,7 +126,7 @@
     </div>
 
     <!-- ЭКРАН 2: ФИНАНСЫ -->
-    <div id="accounting-view" style="display: none;">
+    <div id="accounting-view" class="screen" style="display: none;">
         <div class="card" style="border: 1px solid var(--primary);">
            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
     <h2 style="margin: 0; color: var(--primary);">📊 Финансовая сводка</h2>
@@ -171,7 +172,7 @@
         <div id="expenses-list"></div>
     </div>
     <!-- ЭКРАН 3: ПЛАН ДНЯ -->
-    <div id="plan-view" style="display: none;">
+    <div id="plan-view" class="screen" style="display: none;">
         <div class="card" style="border: 1px solid var(--accent);">
             <h2 style="margin-top: 0; color: var(--accent); text-align: center;">⏰ Напоминание</h2>
             <input type="text" id="task-desc" placeholder="Что нужно сделать?">
@@ -250,7 +251,7 @@
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script type="module" src="app.js"></script>
 <!-- ЭКРАН НАСТРОЕК ПРОФИЛЯ -->
-<div id="settings-screen" style="display: none; padding-top: 20px;">
+<div id="settings-screen" class="screen" style="display: none; padding-top: 20px;">
     <div class="card">
         <!-- Шапка настроек с кнопкой "Назад" -->
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">

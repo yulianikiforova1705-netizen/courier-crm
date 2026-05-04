@@ -60,24 +60,18 @@ export function initTheme() {
     }
 }
 // === ПРОФИЛЬ И НАСТРОЙКИ ===
-
 export function showSettings() {
-    // Безопасно скрываем ВСЕ экраны (и админа, и курьера)
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-    // Показываем настройки
+    document.getElementById('tabs-container').style.display = 'none'; // Прячем табы
     document.getElementById('settings-screen').style.display = 'block';
 }
 
 export function hideSettings() {
     document.getElementById('settings-screen').style.display = 'none';
+    document.getElementById('tabs-container').style.display = 'block'; // Возвращаем табы
     
-    // Смотрим, кто сейчас сидит в системе, и возвращаем его на родной экран
-    const role = localStorage.getItem('trackflow_role');
-    if (role === 'admin') {
-        document.getElementById('admin-screen').style.display = 'block';
-    } else {
-        document.getElementById('courier-screen').style.display = 'block';
-    }
+    // Возвращаем пользователя на экран заказов
+    document.getElementById('orders-view').style.display = 'block';
 }
 
 // Читаем картинку и показываем превью
