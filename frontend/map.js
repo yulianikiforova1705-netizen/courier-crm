@@ -3,6 +3,13 @@
 import { apiCall } from './api.js';
 import { showNotification } from './ui.js';
 
+// === УМНОЕ ФОРМАТИРОВАНИЕ АДРЕСА ===
+// Если в адресе нет слова "Москва", мы принудительно его добавляем, чтобы метки не улетали в другие страны
+function formatAddress(addr) {
+    if (!addr) return '';
+    return addr.toLowerCase().includes('москва') ? addr : 'Москва, ' + addr;
+}
+
 // === КАРТА ЯНДЕКСА ===
 let myMap;
 
@@ -32,9 +39,10 @@ export async function showMap() {
 
         for (const order of activeOrders) {
             try {
-                // Ищем координаты Точки А
+                // Ищем координаты Точки А (с привязкой к Москве)
+                const safePickup = formatAddress(order.pickup_address);
                 // @ts-ignore
-                const pickupRes = await ymaps.geocode(order.pickup_address);
+                const pickupRes = await ymaps.geocode(safePickup);
                 const pickupGeo = pickupRes.geoObjects.get(0);
                 
                 if (pickupGeo) {
@@ -46,9 +54,10 @@ export async function showMap() {
                     myMap.geoObjects.add(pickupPlacemark);
                 }
 
-                // Ищем координаты Точки Б
+                // Ищем координаты Точки Б (с привязкой к Москве)
+                const safeDelivery = formatAddress(order.delivery_address);
                 // @ts-ignore
-                const deliveryRes = await ymaps.geocode(order.delivery_address);
+                const deliveryRes = await ymaps.geocode(safeDelivery);
                 const deliveryGeo = deliveryRes.geoObjects.get(0);
                 
                 if (deliveryGeo) {
@@ -64,7 +73,8 @@ export async function showMap() {
             }
         }
 
-        myMap.setBounds(myMap.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 20 });
+        // Автоматически зумируем карту, чтобы вместить все точки, но без фанатизма
+        myMap.setBounds(myMap.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 30 });
     });
 }
 
@@ -86,11 +96,12 @@ export async function buildSmartRoute() {
     let points = [];
     
     activeOrders.forEach(o => {
+        // Добавляем точки в маршрут тоже с привязкой к Москве
         if (o.status === 'new') {
-            points.push(o.pickup_address);
-            points.push(o.delivery_address);
+            points.push(formatAddress(o.pickup_address));
+            points.push(formatAddress(o.delivery_address));
         } else if (o.status === 'in_progress') {
-            points.push(o.delivery_address);
+            points.push(formatAddress(o.delivery_address));
         }
     });
 
