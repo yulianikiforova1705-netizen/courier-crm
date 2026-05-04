@@ -238,33 +238,27 @@ window.copyTrackingLink = function(orderId) {
     });
 };
 // ==========================================
-// 💰 ЛИЧНЫЙ КАБИНЕТ КУРЬЕРА (ФИНАНСЫ)
+// 💰 БРОНЕБОЙНЫЙ ПОКАЗ КНОПКИ ЗАРАБОТКА
 // ==========================================
-// 1. Показываем кнопку только курьеру (Бронебойный метод)
 setInterval(() => {
+    // Получаем роль прямо из памяти браузера
     const role = localStorage.getItem('role');
-    const tabsContainer = document.querySelector('.tabs');
-    let btn = document.getElementById('btn-courier-finances');
+    const btn = document.getElementById('btn-courier-finances');
     
-    // Если зашел курьер
+    // Печатаем в консоль, чтобы мы могли отследить ошибку
+    console.log('👀 Отладка: Роль =', role, '| Кнопка найдена =', !!btn);
+
     if (role === 'courier') {
-        // Если система при обновлении удалила кнопку — мгновенно создаем её заново
-        if (!btn && tabsContainer) {
-            tabsContainer.insertAdjacentHTML('beforeend', 
-                `<button class="tab-btn" id="btn-courier-finances" onclick="switchTab('courier-finances'); loadCourierFinances()" style="flex-basis: 100%; margin-top: 5px;">💰 Заработок</button>`
-            );
-        } else if (btn) {
-            // Если кнопка есть, делаем её видимой и растягиваем на всю ширину
-            btn.style.display = 'block';
-            btn.style.flexBasis = '100%'; 
-            btn.style.marginTop = '5px';
+        if (btn) {
+            // Вбиваем стили гвоздями (!important), чтобы никто не мог их перезаписать
+            btn.style.cssText = 'display: block !important; flex-basis: 100% !important; margin-top: 8px !important;';
         }
     } else {
-        // Если это админ - прячем
-        if (btn) btn.style.display = 'none';
+        if (btn) {
+            btn.style.cssText = 'display: none !important;';
+        }
     }
-}, 500); // Проверяем каждые полсекунды
-
+}, 1000); // Проверяем раз в секунду
 // 2. Считаем заработок (только доставленные заказы этого курьера)
 window.loadCourierFinances = async function() {
     const userName = localStorage.getItem('userName') || 'Курьер';
