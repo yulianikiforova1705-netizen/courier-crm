@@ -240,13 +240,30 @@ window.copyTrackingLink = function(orderId) {
 // ==========================================
 // 💰 ЛИЧНЫЙ КАБИНЕТ КУРЬЕРА (ФИНАНСЫ)
 // ==========================================
-
-// 1. Показываем кнопку только курьеру
-setTimeout(() => {
+// 1. Показываем кнопку только курьеру (Бронебойный метод)
+setInterval(() => {
     const role = localStorage.getItem('role');
-    const btn = document.getElementById('btn-courier-finances');
-    if (btn) btn.style.display = (role === 'courier') ? 'inline-block' : 'none';
-}, 500);
+    const tabsContainer = document.querySelector('.tabs');
+    let btn = document.getElementById('btn-courier-finances');
+    
+    // Если зашел курьер
+    if (role === 'courier') {
+        // Если система при обновлении удалила кнопку — мгновенно создаем её заново
+        if (!btn && tabsContainer) {
+            tabsContainer.insertAdjacentHTML('beforeend', 
+                `<button class="tab-btn" id="btn-courier-finances" onclick="switchTab('courier-finances'); loadCourierFinances()" style="flex-basis: 100%; margin-top: 5px;">💰 Заработок</button>`
+            );
+        } else if (btn) {
+            // Если кнопка есть, делаем её видимой и растягиваем на всю ширину
+            btn.style.display = 'block';
+            btn.style.flexBasis = '100%'; 
+            btn.style.marginTop = '5px';
+        }
+    } else {
+        // Если это админ - прячем
+        if (btn) btn.style.display = 'none';
+    }
+}, 500); // Проверяем каждые полсекунды
 
 // 2. Считаем заработок (только доставленные заказы этого курьера)
 window.loadCourierFinances = async function() {
