@@ -238,27 +238,33 @@ window.copyTrackingLink = function(orderId) {
     });
 };
 // ==========================================
-// 💰 БРОНЕБОЙНЫЙ ПОКАЗ КНОПКИ ЗАРАБОТКА
+// 💰 СУПЕР-БРОНЕБОЙНЫЙ ПОКАЗ КНОПКИ
 // ==========================================
 setInterval(() => {
-    // Получаем роль прямо из памяти браузера
-    const role = localStorage.getItem('role');
     const btn = document.getElementById('btn-courier-finances');
+    const tabsContainer = document.querySelector('.tabs');
     
-    // Печатаем в консоль, чтобы мы могли отследить ошибку
-    console.log('👀 Отладка: Роль =', role, '| Кнопка найдена =', !!btn);
+    // Проверяем: есть ли на странице админская вкладка "Финансы"?
+    // Если её НЕТ — значит перед нами курьер!
+    const isAdmin = document.getElementById('tab-accounting'); 
 
-    if (role === 'courier') {
-        if (btn) {
-            // Вбиваем стили гвоздями (!important), чтобы никто не мог их перезаписать
-            btn.style.cssText = 'display: block !important; flex-basis: 100% !important; margin-top: 8px !important;';
+    if (!isAdmin) {
+        if (!btn && tabsContainer) {
+            // Если кнопку удалили — создаем заново
+            tabsContainer.insertAdjacentHTML('beforeend', 
+                `<button class="tab-btn" id="btn-courier-finances" onclick="switchTab('courier-finances'); loadCourierFinances()" style="flex-basis: 100% !important; margin-top: 8px !important; display: block !important;">💰 Заработок</button>`
+            );
+        } else if (btn) {
+            // Если кнопка есть — прибиваем её гвоздями, чтоб не исчезала
+            btn.style.setProperty('display', 'block', 'important');
+            btn.style.setProperty('flex-basis', '100%', 'important');
+            btn.style.setProperty('margin-top', '8px', 'important');
         }
     } else {
-        if (btn) {
-            btn.style.cssText = 'display: none !important;';
-        }
+        // Если зашел админ — скрываем кнопку заработка
+        if (btn) btn.style.display = 'none';
     }
-}, 1000); // Проверяем раз в секунду
+}, 500);
 // 2. Считаем заработок (только доставленные заказы этого курьера)
 window.loadCourierFinances = async function() {
     const userName = localStorage.getItem('userName') || 'Курьер';
