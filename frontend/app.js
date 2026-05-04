@@ -219,3 +219,21 @@ window.showMap = showMap;
 window.closeMap = closeMap;
 window.checkAuth = checkAuth;
 checkAuth();
+// Функция для копирования ссылки на страницу трекинга
+window.copyTrackingLink = function(orderId) {
+    // Автоматически получаем текущий адрес сайта (чтобы работало и на локалке, и на GitHub)
+    const currentUrl = window.location.href.split('?')[0]; 
+    const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/')); 
+    
+    // Формируем итоговую ссылку
+    const trackingUrl = `${baseUrl}/track.html?id=${orderId}`;
+
+    // Копируем в буфер обмена
+    navigator.clipboard.writeText(trackingUrl).then(() => {
+        // Показываем красивое уведомление (используем стандартный alert или твой тост, если он есть)
+        alert(`✅ Ссылка скопирована!\nМожешь отправлять её клиенту:\n${trackingUrl}`);
+    }).catch(err => {
+        console.error('Ошибка при копировании: ', err);
+        alert('❌ Не удалось скопировать ссылку. Проверь разрешения браузера.');
+    });
+};

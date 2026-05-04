@@ -98,7 +98,7 @@ function createOrderCardHTML(order) {
             ${photoHTML}
             ${actionBtn ? `<div style="margin-top: 15px;">${actionBtn}</div>` : ''}
             ${!isCompleted ? `<div style="margin-top: 10px;"><a class="btn btn-map" href="${yandexUrl}" target="_blank">${routeText}</a></div>` : ''}
-            <button onclick="copyTrackingLink(${order.id})" style="background: transparent; color: #a0a0b0; border: 1px dashed #a0a0b0; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; cursor: pointer; font-family: inherit; font-size: 12px;">
+            <button class="btn" onclick="copyTrackingLink(${order.id})" style="width: 100%; background: transparent; color: var(--text-main); border: 1px dashed var(--border); margin-top: 10px;">
     🔗 СКОПИРОВАТЬ ССЫЛКУ КЛИЕНТУ
 </button>
         </div>
