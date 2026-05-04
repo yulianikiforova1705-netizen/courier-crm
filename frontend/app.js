@@ -84,6 +84,7 @@ function checkPassword() {
     if (document.getElementById('password-input').value === ACCESS_PASSWORD) {
         localStorage.setItem('trackflow_role', 'admin');
         checkAuth();
+        updateProfileUI();
     } else {
         document.getElementById('login-error').style.display = 'block';
         document.getElementById('password-input').value = '';
@@ -98,14 +99,13 @@ function loginAsCourier() {
         localStorage.setItem('trackflow_role', 'courier');
         localStorage.setItem('trackflow_name', name);
         checkAuth();
+        
+        // ДОБАВЛЯЕМ СЮДА (при успешном входе)
+        updateProfileUI(); 
     } else {
         document.getElementById('courier-error').style.display = 'block';
-        document.getElementById('header-avatar').style.display = 'block'; // Показываем аватарку курьеру
-    // ДОБАВЬ ЭТУ СТРОЧКУ В КОНЕЦ:
-    updateProfileUI(); 
-}
     }
-
+}
 
 // 🛡️ ГЛАВНАЯ ФУНКЦИЯ: Скрываем лишнее от курьера
 function applyRoleRestrictions() {
