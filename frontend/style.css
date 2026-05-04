@@ -1,36 +1,42 @@
-/* 🎨 Премиальная палитра V-SYSTEM Core */
+/* 🎨 Премиальная палитра (Apple Style) */
 :root {
-    --primary: #2563eb; 
-    --accent: #f97316;
-    --success: #059669;
-    --bg: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #0f172a;
-    --border: rgba(0, 0, 0, 0.05);
+    --primary: #0A84FF; /* Глубокий синий iOS */
+    --accent: #FF9500;  /* Оранжевый iOS */
+    --success: #32D74B; /* Зеленый iOS */
+    --bg: #F2F2F7;      /* Светло-серый фон iOS */
+    --card-bg: rgba(255, 255, 255, 0.7); /* Матовое стекло */
+    --text-main: #000000;
+    --border: rgba(60, 60, 67, 0.1); /* Очень тонкая граница */
 }
 
-/* 🌙 Темная тема (Cyber/Tech Style) */
+/* 🌙 Темная тема (Premium OLED Dark) */
 body.dark-theme {
-    --bg: #0b1121;
-    --card-bg: #151e32;
-    --text-main: #e2e8f0;
-    --primary: #00e5ff; /* Неоновый циан */
-    --accent: #ff6b6b;  /* Коралловый */
-    --border: rgba(0, 229, 255, 0.15);
+    --bg: #000000; /* Настоящий OLED-черный */
+    --card-bg: rgba(28, 28, 30, 0.65); /* Темное матовое стекло */
+    --text-main: #FFFFFF;
+    --primary: #0A84FF; 
+    --accent: #FF453A;  /* Коралловый красный iOS */
+    --success: #30D158; /* Зеленый для темной темы */
+    --border: rgba(255, 255, 255, 0.1);
 }
 
 body { 
-    font-family: 'Inter', sans-serif; 
+    /* Системные шрифты Apple для идеального сглаживания */
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; 
+    -webkit-font-smoothing: antialiased; 
     background: var(--bg); 
     color: var(--text-main); 
     padding: 20px; 
     max-width: 800px; 
     margin: 0 auto; 
     line-height: 1.6;
-    transition: background 0.3s ease, color 0.3s ease;
+    transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* 🏢 Шапка приложения */
+/* =========================================
+   🏢 ШАПКА ПРИЛОЖЕНИЯ (БРЕНДИНГ V-SYSTEM)
+   (Оставлено без изменений)
+   ========================================= */
 .app-header {
     display: flex;
     justify-content: space-between;
@@ -62,6 +68,7 @@ body {
     transition: all 0.2s ease;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
+
 .trackflow-title {
     margin: 0;
     font-family: 'Orbitron', sans-serif;
@@ -69,7 +76,6 @@ body {
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 3px;
-    /* Тот самый градиент из Ядра */
     background: linear-gradient(90deg, #0D9488 0%, #0D9488 18%, #3B82F6 35%, #8B5CF6 50%, #3B82F6 65%, #0D9488 82%, #0D9488 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
@@ -78,95 +84,119 @@ body {
     animation: v-text-flow 6s linear infinite;
     filter: drop-shadow(0 0 10px rgba(13, 148, 136, 0.5));
 }
-/* 📑 Вкладки */
+
+/* =========================================
+   ВНУТРЕННИЙ ИНТЕРФЕЙС (СТИЛЬ iOS / macOS)
+   ========================================= */
+
+/* 📑 Вкладки (как Segmented Control в iOS) */
 .tabs { 
     display: flex; 
     gap: 10px; 
     margin-bottom: 20px; 
-    flex-wrap: wrap; /* Разрешаем кнопкам переноситься на новую строку */
+    flex-wrap: wrap; 
 }
 .tab-btn {
-    flex: 1 1 calc(50% - 10px); /* Делаем идеальную сетку 2x2 на мобильных */
-    background: transparent;
-    color: #64748b;
-    border: 1px solid var(--border);
-    padding: 10px 5px;
-    border-radius: 8px;
+    flex: 1 1 calc(50% - 10px); 
+    background: rgba(118, 118, 128, 0.12); /* Мягкая подложка */
+    color: var(--text-main);
+    border: none;
+    padding: 12px 5px;
+    border-radius: 12px;
     cursor: pointer;
-    font-weight: 700;
-    font-size: 0.85em;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.2s ease;
-    text-align: center; /* Центрируем текст */
+    font-weight: 600;
+    font-size: 0.9em;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    text-align: center;
 }
 .tab-btn.active {
-    color: var(--primary);
-    border-color: var(--primary);
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    background: var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+}
+.tab-btn:active {
+    transform: scale(0.96); /* Микро-анимация нажатия */
 }
 
-/* Карточки */
+/* 📱 Карточки (Эффект матового стекла) */
 .card, .order-card { 
     background: var(--card-bg); 
-    border-radius: 12px; 
+    border-radius: 20px; /* Идеальные скругления Apple */
     padding: 25px; 
     margin-bottom: 20px; 
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); 
     border: 1px solid var(--border);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    /* Та самая магия стекла! */
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); 
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
 }
 
-body.dark-theme .order-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+body.dark-theme .card, body.dark-theme .order-card {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); /* Глубокая тень для черного фона */
 }
 
-.order-card h3 { margin-top: 0; color: var(--primary); font-size: 1.3em; }
+.order-card h3 { 
+    margin-top: 0; 
+    color: var(--primary); 
+    font-size: 1.3em; 
+    font-weight: 700; 
+    letter-spacing: -0.5px;
+}
 
-/* Статусы */
+/* Статусы (Pill-shape) */
 .status { 
     display: inline-block; 
-    padding: 4px 12px; 
-    border-radius: 6px; 
-    background: rgba(100, 116, 139, 0.1);
+    padding: 6px 14px; 
+    border-radius: 20px; 
+    background: rgba(118, 118, 128, 0.12);
     color: var(--text-main); 
     font-weight: 600; 
     font-size: 0.85em; 
     text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid var(--border);
+    letter-spacing: 0.5px;
 }
 
 /* 🎛 Кнопки */
 .btn { 
-    background: transparent;
+    background: rgba(10, 132, 255, 0.1);
     color: var(--primary); 
-    border: 1px solid var(--primary);
-    padding: 12px 20px; 
-    border-radius: 8px; 
+    border: none;
+    padding: 14px 20px; 
+    border-radius: 14px; 
     cursor: pointer; 
-    font-size: 0.9em; 
-    font-weight: 700; 
+    font-size: 0.95em; 
+    font-weight: 600; 
     margin-right: 8px; 
     margin-bottom: 8px;
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .btn:hover { 
     background: var(--primary); 
-    color: var(--bg); 
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.3); 
+    color: #FFFFFF; 
 }
 
-.btn-complete { border-color: #10b981; color: #10b981; }
-.btn-complete:hover { background: #10b981; color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
+/* Пружинящий эффект при клике - очень важно для ощущения "дороговизны" */
+.btn:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+.btn-complete { 
+    background: rgba(50, 215, 75, 0.1); 
+    color: var(--success); 
+}
+.btn-complete:hover { 
+    background: var(--success); 
+    color: #FFFFFF; 
+}
 
 .btn-map { 
     background: var(--primary); 
-    color: var(--bg); 
+    color: #FFFFFF; 
     border: none; 
     width: 100%;
     text-align: center;
@@ -177,57 +207,115 @@ body.dark-theme .order-card:hover {
     white-space: normal;
 }
 
-.btn-map:hover { background: var(--primary); filter: brightness(110%); }
-
 /* Поля ввода */
 input { 
     width: 100%; 
-    padding: 15px; 
+    padding: 16px; 
     margin-bottom: 15px; 
     border: 1px solid var(--border); 
-    border-radius: 8px; 
+    border-radius: 14px; 
     box-sizing: border-box; 
     font-family: inherit; 
     font-size: 1em; 
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     background: var(--card-bg);
     color: var(--text-main);
+    
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 input:focus { 
     outline: none; 
     border-color: var(--primary); 
-    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.2); /* Красивое кольцо фокуса */
 }
 
 /* 🔐 Экран авторизации */
 .login-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: #0b1121;
+    background: rgba(0, 0, 0, 0.7); /* Затемнение фона */
+    backdrop-filter: blur(15px); /* Сильное размытие заднего плана */
+    -webkit-backdrop-filter: blur(15px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     transition: opacity 0.3s ease;
 }
+
 .login-card {
-    background: #151e32;
+    background: var(--card-bg);
     padding: 40px;
-    border-radius: 12px;
+    border-radius: 24px;
     text-align: center;
-    border: 1px solid rgba(0, 229, 255, 0.15);
-    box-shadow: 0 0 40px rgba(0, 229, 255, 0.1);
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
     width: 90%;
     max-width: 400px;
+    
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
 }
+
 .login-card input {
     text-align: center;
     letter-spacing: 2px;
     font-weight: 700;
 }
 
-/* Подвал */
+/* 🔔 Уведомления (iOS Dynamic Island Style) */
+#toast-container {
+    position: fixed;
+    top: 20px; /* Перенесли наверх, как в iOS */
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 10000;
+    pointer-events: none; /* Чтобы не мешали кликать по экрану */
+}
+
+.toast {
+    background: var(--card-bg);
+    color: var(--text-main);
+    padding: 14px 24px;
+    border-radius: 100px; /* Овальная форма */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    font-weight: 600;
+    border: 1px solid var(--border);
+    
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    
+    animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Стили для задач */
+.task-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(118, 118, 128, 0.08);
+    padding: 16px; border-radius: 14px; margin-bottom: 10px;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+.task-done {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+/* =========================================
+   ПОДВАЛ (БРЕНДИНГ V-SYSTEM)
+   (Оставлено без изменений)
+   ========================================= */
 .app-footer {
     text-align: center;
     margin-top: 40px;
@@ -239,41 +327,3 @@ input:focus {
     letter-spacing: 1.5px;
     font-weight: 600;
 }
-/* 🔔 Уведомления (Всплывающие Toast) */
-#toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 10000;
-}
-.toast {
-    background: var(--card-bg);
-    border-left: 5px solid var(--accent);
-    color: var(--text-main);
-    padding: 15px 25px;
-    border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    font-weight: 600;
-    animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes slideIn {
-    from { transform: translateX(120%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-/* Стили для задач */
-.task-item {
-    display: flex; justify-content: space-between; align-items: center;
-    background: rgba(100, 116, 139, 0.05);
-    padding: 15px; border-radius: 8px; margin-bottom: 10px;
-    border: 1px solid var(--border);
-}
-.task-done {
-    opacity: 0.5;
-    text-decoration: line-through;
-}
-
-
