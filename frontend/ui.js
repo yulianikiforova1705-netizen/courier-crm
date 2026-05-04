@@ -109,16 +109,30 @@ export function saveProfile() {
     alert('✅ Профиль успешно обновлен!'); // Или используй свою красивую showNotification
 }
 
-// Загружаем данные при старте
+// Загружаем данные при старте и обновляем интерфейс
 export function updateProfileUI() {
     const savedName = localStorage.getItem('trackflow_name') || 'Курьер';
-    const savedAvatar = localStorage.getItem('trackflow_avatar') || 'https://via.placeholder.com/100';
+    
+    // Та самая надежная встроенная картинка вместо via.placeholder
+    const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NiZDVlMSI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==';
+    const savedAvatar = localStorage.getItem('trackflow_avatar') || defaultAvatar;
 
     const headerAvatar = document.getElementById('header-avatar');
     const settingsPreview = document.getElementById('settings-avatar-preview');
     const profileInput = document.getElementById('profile-name');
 
+    // Подставляем картинки и имя
     if (headerAvatar) headerAvatar.src = savedAvatar;
     if (settingsPreview) settingsPreview.src = savedAvatar;
     if (profileInput) profileInput.value = savedName;
+
+    // ЖЕЛЕЗОБЕТОННАЯ ПРОВЕРКА: показываем аватарку ТОЛЬКО курьеру
+    const currentRole = localStorage.getItem('trackflow_role');
+    if (headerAvatar) {
+        if (currentRole === 'courier') {
+            headerAvatar.style.display = 'block'; // Показываем
+        } else {
+            headerAvatar.style.display = 'none';  // Прячем от админа
+        }
+    }
 }
