@@ -101,8 +101,11 @@ function loginAsCourier() {
     } else {
         document.getElementById('courier-error').style.display = 'block';
         document.getElementById('header-avatar').style.display = 'block'; // Показываем аватарку курьеру
-    }
+    // ДОБАВЬ ЭТУ СТРОЧКУ В КОНЕЦ:
+    updateProfileUI(); 
 }
+    }
+
 
 // 🛡️ ГЛАВНАЯ ФУНКЦИЯ: Скрываем лишнее от курьера
 function applyRoleRestrictions() {
