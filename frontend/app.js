@@ -129,31 +129,52 @@ function logout() {
 // ==========================================
 // 📑 НАВИГАЦИЯ (ВКЛАДКИ И АРХИВ)
 // ==========================================
-function switchTab(tab) {
-    currentTab = tab;
-    
+window.switchTab = function(tab) {
+    // 1. Скрываем абсолютно все экраны
+    const screens = ['orders-view', 'accounting-view', 'plan-view', 'courier-finances-tab'];
+    screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+
+    // 2. Убираем класс 'active' у всех кнопок
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`tab-${tab}`).classList.add('active');
 
-    document.getElementById('orders-view').style.display = 'none';
-    document.getElementById('accounting-view').style.display = 'none';
-    document.getElementById('plan-view').style.display = 'none';
-
+    // 3. Логика показа нужного экрана и загрузки данных
     if (tab === 'active' || tab === 'archive') {
         document.getElementById('orders-view').style.display = 'block';
-       // В Архиве или для Курьера прячем форму создания заказа!
+        
+        // Скрываем форму создания заказа для курьера или если это архив
         const userRole = localStorage.getItem('trackflow_role');
-        document.getElementById('create-order-form').style.display = (tab === 'active' && userRole !== 'courier') ? 'block' : 'none';
-        loadOrders();
-    } else if (tab === 'accounting') {
-        document.getElementById('accounting-view').style.display = 'block';
-        loadAccounting();
-    } else if (tab === 'plan') {
-        document.getElementById('plan-view').style.display = 'block';
-        loadTasks();
-    }
-}
+        const form = document.getElementById('create-order-form');
+        if (form) {
+            form.style.display = (tab === 'active' && userRole === 'admin') ? 'block' : 'none';
+        }
+        if (typeof loadOrders === 'function') loadOrders();
 
+    } else if (tab === 'accounting') {
+        const accView = document.getElementById('accounting-view');
+        if (accView) accView.style.display = 'block';
+        if (typeof loadAccounting === 'function') loadAccounting();
+
+    } else if (tab === 'plan') {
+        const planView = document.getElementById('plan-view');
+        if (planView) planView.style.display = 'block';
+        if (typeof loadTasks === 'function') loadTasks();
+
+    } else if (tab === 'courier-finances') {
+        const finTab = document.getElementById('courier-finances-tab');
+        if (finTab) finTab.style.display = 'block';
+        if (typeof loadCourierFinances === 'function') loadCourierFinances();
+    }
+
+    // 4. Подсвечиваем кнопку (ищем по ID или по тексту в onclick)
+    const activeBtn = document.getElementById('tab-' + tab) || 
+                      document.getElementById('btn-courier-finances') ||
+                      document.querySelector(`[onclick*="${tab}"]`);
+    
+    if (activeBtn) activeBtn.classList.add('active');
+};
 // ==========================================
 // 🚀 ЗАПУСК И СИСТЕМНЫЕ ФОНОВЫЕ ПРОЦЕССЫ
 // ==========================================
