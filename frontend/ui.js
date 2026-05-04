@@ -29,25 +29,32 @@ export function showNotification(message) {
 
 // === ТЕМЫ ОФОРМЛЕНИЯ ===
 export function toggleTheme() {
-    document.body.classList.toggle('light-mode');
-    const isLight = document.body.classList.contains('light-mode');
+    // Получаем текущее состояние (светлая ли сейчас тема?)
+    const isCurrentlyLight = document.body.classList.contains('light-mode');
     
-    // Сохраняем в память телефона/браузера
-    localStorage.setItem('trackflow_theme', isLight ? 'light' : 'dark');
-    
-    // Меняем иконку на кнопке
-    const btn = document.getElementById('theme-btn');
-    if (btn) btn.innerText = isLight ? '🌙' : '☀️';
+    if (isCurrentlyLight) {
+        // Если была светлая -> делаем темную
+        document.body.classList.remove('light-mode');
+        localStorage.setItem('trackflow_theme', 'dark');
+        document.getElementById('theme-btn').innerText = '☀️';
+    } else {
+        // Если была темная -> делаем светлую
+        document.body.classList.add('light-mode');
+        localStorage.setItem('trackflow_theme', 'light');
+        document.getElementById('theme-btn').innerText = '🌙';
+    }
 }
 
 export function initTheme() {
     const savedTheme = localStorage.getItem('trackflow_theme');
     const btn = document.getElementById('theme-btn');
     
+    // По умолчанию пусть будет темная (если ничего не сохранено)
     if (savedTheme === 'light') {
         document.body.classList.add('light-mode');
         if (btn) btn.innerText = '🌙';
     } else {
+        document.body.classList.remove('light-mode'); // Явно убираем класс на всякий случай
         if (btn) btn.innerText = '☀️';
     }
 }
