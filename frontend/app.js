@@ -289,48 +289,36 @@ uiObserver.observe(document.body, { childList: true, subtree: true });
 // Первичный запуск
 injectCourierFinances();
 
-// Обновленная функция расчета с использованием ключа trackflow_name
+// === УЛУЧШЕННЫЙ РАСЧЕТ ЗАРАБОТКА (УМНЫЙ ФИЛЬТР) ===
 window.loadCourierFinances = async function() {
-    const userName = localStorage.getItem('trackflow_name') || 'Курьер';
+    const rawName = localStorage.getItem('trackflow_name') || '';
+    const userName = rawName.trim().toLowerCase(); // Убираем пробелы и приводим к нижнему регистру
+
+    if (!userName) return;
+
     try {
         const res = await fetch('https://courier-crm-api.onrender.com/api/orders');
         const orders = await res.json();
         
-        const myOrders = orders.filter(o => 
-            (o.status === 'completed' || o.status === 'archive') && 
-            o.courier_name === userName
-        );
+        // Фильтруем заказы: проверяем статус и имя курьера без учета регистра
+        const myOrders = orders.filter(o => {
+            const status = (o.status || '').toLowerCase();
+            const courier = (o.courier_name || '').trim().toLowerCase();
+            
+            return (status === 'completed' || status === 'archive') && 
+                   courier === userName;
+        });
         
         const totalEarned = myOrders.reduce((sum, order) => sum + (Number(order.price) || 0), 0);
+        
         const display = document.getElementById('courier-total-earned');
-        if (display) display.innerText = totalEarned + ' ₽';
+        if (display) {
+            display.innerText = totalEarned + ' ₽';
+        }
     } catch (err) {
         console.error('Ошибка загрузки заработка:', err);
     }
 };
-
-// 2. Считаем заработок (только доставленные заказы этого курьера)
-window.loadCourierFinances = async function() {
-    const userName = localStorage.getItem('userName') || 'Курьер';
-    try {
-        const res = await fetch('https://courier-crm-api.onrender.com/api/orders');
-        const orders = await res.json();
-        
-        // Фильтруем: статус завершен И имя курьера совпадает с текущим
-        const myOrders = orders.filter(o => 
-            (o.status === 'completed' || o.status === 'archive') && 
-            o.courier_name === userName
-        );
-        
-        // Считаем сумму (предполагаем, что курьер забирает 100% от поля 'Сумма доставки')
-        const totalEarned = myOrders.reduce((sum, order) => sum + (Number(order.price) || 0), 0);
-        
-        document.getElementById('courier-total-earned').innerText = totalEarned + ' ₽';
-    } catch (err) {
-        console.error('Ошибка загрузки заработка:', err);
-    }
-};
-
 
 // 3. Добавляем расход с пометкой имени курьера
 window.addCourierExpense = async function() {
