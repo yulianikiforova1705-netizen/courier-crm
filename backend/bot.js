@@ -27,32 +27,59 @@ bot.on('callback_query', async (query) => {
     const chatId = query.message.chat.id;
     const messageId = query.message.message_id;
 
-    // Если нажали кнопку "Взять в работу"
+    // 1️⃣ Если нажали кнопку "Взять в работу"
     if (data.startsWith('take_')) {
         const orderId = data.split('_')[1]; // Вытаскиваем ID заказа из кнопки
 
         try {
-            // МАГИЯ: Бот сам дергает наш API-сервер и меняет статус в базе!
+            // Бот сам дергает наш API-сервер и меняет статус на in_progress
             await fetch(`https://courier-crm-api.onrender.com/api/orders/${orderId}/status`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'in_progress' })
             });
 
-            // Меняем кнопку на зеленое "В работе", чтобы не нажать дважды
+            // МЕНЯЕМ КНОПКУ НА ПОНЯТНУЮ ДЛЯ КУРЬЕРА
             bot.editMessageReplyMarkup({
-                inline_keyboard: [[{ text: '✅ В работе', callback_data: 'ignore' }]]
+                inline_keyboard: [[{ text: '📦 Отметить как доставленный', callback_data: `deliver_${orderId}` }]]
             }, { chat_id: chatId, message_id: messageId });
 
             // Показываем всплывашку в самом Telegram
-            bot.answerCallbackQuery(query.id, { text: 'Заказ успешно взят в работу!' });
+            bot.answerCallbackQuery(query.id, { text: 'Заказ у тебя! Удачной дороги 🏃‍♂️' });
 
         } catch (err) {
-            console.error('Ошибка при нажатии кнопки:', err);
+            console.error('Ошибка при нажатии кнопки взять в работу:', err);
             bot.answerCallbackQuery(query.id, { text: 'Произошла ошибка =(' });
         }
-    } else {
-        bot.answerCallbackQuery(query.id); // Игнорируем другие кнопки
+    } 
+    // 2️⃣ Если нажали кнопку завершения доставки
+    else if (data.startsWith('deliver_')) {
+        const orderId = data.split('_')[1];
+
+        try {
+            // Дергаем API-сервер и меняем статус на completed (завершено)
+            await fetch(`https://courier-crm-api.onrender.com/api/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'completed' }) // Заказ улетит в архив!
+            });
+
+            // Меняем кнопку на финальную некликабельную "🏁 Заказ завершен"
+            bot.editMessageReplyMarkup({
+                inline_keyboard: [[{ text: '🏁 Заказ завершен', callback_data: 'ignore' }]]
+            }, { chat_id: chatId, message_id: messageId });
+
+            // Радостная всплывашка
+            bot.answerCallbackQuery(query.id, { text: 'Супер! Заказ доставлен 🎉' });
+
+        } catch (err) {
+            console.error('Ошибка при завершении заказа:', err);
+            bot.answerCallbackQuery(query.id, { text: 'Произошла ошибка =(' });
+        }
+    } 
+    // Игнорируем другие кнопки (например 'ignore')
+    else {
+        bot.answerCallbackQuery(query.id); 
     }
 });
 

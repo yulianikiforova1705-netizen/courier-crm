@@ -7,9 +7,11 @@ async function startParser(client, io, sendPushNotification) {
     client.addEventHandler(async (event) => {
         const message = event.message;
         if (message && message.text) {
-            // БРОНЯ ОТ БЕСКОНЕЧНОЙ ПЕТЛИ 🛡️
+            // БРОНЯ ОТ БЕСКОНЕЧНОЙ ПЕТЛИ 🛡️ (Обновленная)
             if (message.text.includes('НОВЫЙ ЗАКАЗ') || 
                 message.text.includes('Взять в работу') || 
+                message.text.includes('Отметить как доставленный') || // 👈 Добавили защиту для новой кнопки
+                message.text.includes('Заказ завершен') ||            // 👈 Добавили защиту для финальной кнопки
                 message.text.includes('Сумма: 0 ₽')) {
                 return; // Сразу блокируем и выходим!
             }
@@ -26,7 +28,8 @@ async function startParser(client, io, sendPushNotification) {
             const pickup = matchPickup ? matchPickup[1].trim() : "Уточнить адрес";
             const delivery = matchDelivery ? matchDelivery[1].trim() : "Уточнить адрес";
             const price = matchPrice ? parseInt(matchPrice[1]) : 0;
-try {
+            
+            try {
                 // ВАЖНО: здесь должно быть const result = 
                 const result = await pool.query(
                     `INSERT INTO orders (pickup_address, delivery_address, client_name, client_phone, deadline, price, status) 
@@ -43,7 +46,8 @@ try {
                     io.emit('update_data');
                     io.emit('new_order_alert', pickup); // 👈 ВОТ ОНА, МАГИЯ! Сигнал для красивого уведомления
                 }
-// 👇 ВЫЗЫВАЕМ СИСТЕМНЫЙ PUSH ДЛЯ АЙФОНА!
+                
+                // 👇 ВЫЗЫВАЕМ СИСТЕМНЫЙ PUSH ДЛЯ АЙФОНА!
                 if (sendPushNotification) {
                     try {
                         await sendPushNotification('🚀 Новый заказ!', `Нужно забрать: ${pickup}`);
