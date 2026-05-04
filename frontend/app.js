@@ -237,34 +237,57 @@ window.copyTrackingLink = function(orderId) {
         alert('❌ Не удалось скопировать ссылку. Проверь разрешения браузера.');
     });
 };
-// ==========================================
-// 💰 СУПЕР-БРОНЕБОЙНЫЙ ПОКАЗ КНОПКИ
-// ==========================================
-setInterval(() => {
-    const btn = document.getElementById('btn-courier-finances');
-    const tabsContainer = document.querySelector('.tabs');
-    
-    // Проверяем: есть ли на странице админская вкладка "Финансы"?
-    // Если её НЕТ — значит перед нами курьер!
-    const isAdmin = document.getElementById('tab-accounting'); 
+// === КОРРЕКТНАЯ ИНТЕГРАЦИЯ ВКЛАДКИ ЗАРАБОТКА (Apple Style) ===
 
-    if (!isAdmin) {
-        if (!btn && tabsContainer) {
-            // Если кнопку удалили — создаем заново
-            tabsContainer.insertAdjacentHTML('beforeend', 
-                `<button class="tab-btn" id="btn-courier-finances" onclick="switchTab('courier-finances'); loadCourierFinances()" style="flex-basis: 100% !important; margin-top: 8px !important; display: block !important;">💰 Заработок</button>`
-            );
-        } else if (btn) {
-            // Если кнопка есть — прибиваем её гвоздями, чтоб не исчезала
-            btn.style.setProperty('display', 'block', 'important');
-            btn.style.setProperty('flex-basis', '100%', 'important');
-            btn.style.setProperty('margin-top', '8px', 'important');
-        }
-    } else {
-        // Если зашел админ — скрываем кнопку заработка
-        if (btn) btn.style.display = 'none';
+function injectCourierFinances() {
+    // Теперь используем ТВОИ ключи из функций входа
+    const role = localStorage.getItem('trackflow_role');
+    const tabsContainer = document.querySelector('.tabs');
+    let btn = document.getElementById('btn-courier-finances');
+
+    // Если зашел курьер и кнопки еще нет — добавляем её
+    if (role === 'courier' && tabsContainer && !btn) {
+        tabsContainer.insertAdjacentHTML('beforeend', `
+            <button class="tab-btn" id="btn-courier-finances" 
+                    onclick="switchTab('courier-finances'); loadCourierFinances()" 
+                    style="flex-basis: 100%; margin-top: 8px;">
+                💰 Заработок
+            </button>
+        `);
     }
-}, 500);
+}
+
+// Следим за изменениями интерфейса (чтобы кнопка не исчезала при обновлении заказов)
+const uiObserver = new MutationObserver(() => {
+    injectCourierFinances();
+});
+
+// Запускаем наблюдение
+uiObserver.observe(document.body, { childList: true, subtree: true });
+
+// Первичный запуск
+injectCourierFinances();
+
+// Обновленная функция расчета с использованием ключа trackflow_name
+window.loadCourierFinances = async function() {
+    const userName = localStorage.getItem('trackflow_name') || 'Курьер';
+    try {
+        const res = await fetch('https://courier-crm-api.onrender.com/api/orders');
+        const orders = await res.json();
+        
+        const myOrders = orders.filter(o => 
+            (o.status === 'completed' || o.status === 'archive') && 
+            o.courier_name === userName
+        );
+        
+        const totalEarned = myOrders.reduce((sum, order) => sum + (Number(order.price) || 0), 0);
+        const display = document.getElementById('courier-total-earned');
+        if (display) display.innerText = totalEarned + ' ₽';
+    } catch (err) {
+        console.error('Ошибка загрузки заработка:', err);
+    }
+};
+
 // 2. Считаем заработок (только доставленные заказы этого курьера)
 window.loadCourierFinances = async function() {
     const userName = localStorage.getItem('userName') || 'Курьер';
@@ -286,6 +309,7 @@ window.loadCourierFinances = async function() {
         console.error('Ошибка загрузки заработка:', err);
     }
 };
+
 
 // 3. Добавляем расход с пометкой имени курьера
 window.addCourierExpense = async function() {
