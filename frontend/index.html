@@ -91,9 +91,25 @@
             <button class="tab-btn" id="tab-archive" onclick="switchTab('archive')">🗄️ Архив</button>
             <button class="tab-btn" id="tab-accounting" onclick="switchTab('accounting')">💰 Финансы</button>
             <button class="tab-btn" id="tab-plan" onclick="switchTab('plan')">📋 План дня</button>
+      <button class="tab-btn" id="btn-courier-finances" onclick="switchTab('courier-finances'); loadCourierFinances()" style="display: none;">💰 Заработок</button>
         </div>
     </div> <!-- 👈 Теперь закрываем контейнер здесь, после вкладок -->
-
+<!-- === ЭКРАН ЗАРАБОТКА КУРЬЕРА === -->
+<div id="courier-finances-tab" class="tab-content" style="display: none;">
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--text-muted); margin-top: 0;">💸 Заработано на заказах</h3>
+        <h1 id="courier-total-earned" style="color: var(--success); font-size: 3.5em; margin: 10px 0;">0 ₽</h1>
+        <p style="font-size: 0.85em; color: var(--text-muted);">Сумма за все доставленные вами заказы</p>
+    </div>
+    
+    <div class="card">
+        <h3>🧾 Внести рабочий расход</h3>
+        <p style="font-size: 0.85em; color: var(--text-muted); margin-top: 0; margin-bottom: 15px;">Деньги вычтутся из общей кассы администратора</p>
+        <input type="text" id="courier-expense-desc" placeholder="На что потрачено? (напр. Бензин)">
+        <input type="number" id="courier-expense-amount" placeholder="Сумма расхода (₽)">
+        <button class="btn" onclick="addCourierExpense()" style="width: 100%;">Добавить расход</button>
+    </div>
+</div>
     <!-- ЭКРАН 1: ЗАКАЗЫ -->
     <div id="orders-view" class="screen">
         <!-- Блок создания заказа (Скрывается в архиве) -->

@@ -237,3 +237,62 @@ window.copyTrackingLink = function(orderId) {
         alert('❌ Не удалось скопировать ссылку. Проверь разрешения браузера.');
     });
 };
+// ==========================================
+// 💰 ЛИЧНЫЙ КАБИНЕТ КУРЬЕРА (ФИНАНСЫ)
+// ==========================================
+
+// 1. Показываем кнопку только курьеру
+setTimeout(() => {
+    const role = localStorage.getItem('role');
+    const btn = document.getElementById('btn-courier-finances');
+    if (btn) btn.style.display = (role === 'courier') ? 'inline-block' : 'none';
+}, 500);
+
+// 2. Считаем заработок (только доставленные заказы этого курьера)
+window.loadCourierFinances = async function() {
+    const userName = localStorage.getItem('userName') || 'Курьер';
+    try {
+        const res = await fetch('https://courier-crm-api.onrender.com/api/orders');
+        const orders = await res.json();
+        
+        // Фильтруем: статус завершен И имя курьера совпадает с текущим
+        const myOrders = orders.filter(o => 
+            (o.status === 'completed' || o.status === 'archive') && 
+            o.courier_name === userName
+        );
+        
+        // Считаем сумму (предполагаем, что курьер забирает 100% от поля 'Сумма доставки')
+        const totalEarned = myOrders.reduce((sum, order) => sum + (Number(order.price) || 0), 0);
+        
+        document.getElementById('courier-total-earned').innerText = totalEarned + ' ₽';
+    } catch (err) {
+        console.error('Ошибка загрузки заработка:', err);
+    }
+};
+
+// 3. Добавляем расход с пометкой имени курьера
+window.addCourierExpense = async function() {
+    const desc = document.getElementById('courier-expense-desc').value;
+    const amount = document.getElementById('courier-expense-amount').value;
+    const userName = localStorage.getItem('userName') || 'Курьер';
+
+    if (!desc || !amount) return alert('Пожалуйста, заполните все поля!');
+
+    // Формируем описание для админа (например: "[Иван] Бензин")
+    const finalDesc = `[${userName}] ${desc}`;
+
+    try {
+        await fetch('https://courier-crm-api.onrender.com/api/finances/expenses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: finalDesc, amount: Number(amount) })
+        });
+        
+        alert('✅ Расход успешно добавлен и передан администратору!');
+        document.getElementById('courier-expense-desc').value = '';
+        document.getElementById('courier-expense-amount').value = '';
+    } catch (err) {
+        console.error(err);
+        alert('❌ Ошибка при добавлении расхода.');
+    }
+};
