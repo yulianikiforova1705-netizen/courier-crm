@@ -87,6 +87,7 @@ function checkPassword() {
     } else {
         document.getElementById('login-error').style.display = 'block';
         document.getElementById('password-input').value = '';
+        document.getElementById('header-avatar').style.display = 'none'; // Прячем аватарку от админа
     }
 }
 
@@ -99,6 +100,7 @@ function loginAsCourier() {
         checkAuth();
     } else {
         document.getElementById('courier-error').style.display = 'block';
+        document.getElementById('header-avatar').style.display = 'block'; // Показываем аватарку курьеру
     }
 }
 

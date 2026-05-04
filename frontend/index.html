@@ -58,27 +58,26 @@
         </div>
     </div>
 <!-- КРАСИВАЯ ШАПКА ПРИЛОЖЕНИЯ -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); gap: 10px;"> 
-       <div style="flex: 1; display: flex; justify-content: flex-start; align-items: center; gap: 15px;">
-    <!-- Кнопка выхода -->
-    <button onclick="logout()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 8px; cursor: pointer;">Выйти</button>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     
-    <!-- Мини-аватарка профиля -->
-    <img id="header-avatar" onclick="showSettings()" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer;" title="Настройки профиля">
-</div>
-        <!-- Заголовок (По центру) -->
-     <h1 class="trackflow-title">
-    TrackFlow
-</h1>
-        
-        <!-- Кнопка Темы (Справа) -->
-        <div style="flex: 1; display: flex; justify-content: flex-end;">
-            <button id="theme-btn" onclick="toggleTheme()" style="background: transparent; border: none; font-size: 22px; cursor: pointer; padding: 0;">
-                🌙
-            </button>
-        </div>
-        
+    <!-- Кнопка Выхода (Слева) -->
+    <div style="flex: 1; display: flex; justify-content: flex-start;">
+        <button onclick="logout()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 8px; cursor: pointer;">Выйти</button>
     </div>
+
+    <!-- Заголовок (По центру) -->
+    <h1 class="trackflow-title" style="margin: 0; text-align: center;">
+        TrackFlow
+    </h1>
+
+    <!-- Аватарка и Тема (Справа) -->
+    <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+        <!-- Аватарка скрыта по умолчанию (display: none) -->
+        <img id="header-avatar" onclick="showSettings()" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NiZDVlMSI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==" style="display: none; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer;" title="Профиль">
+        
+        <button id="theme-btn" onclick="toggleTheme()" style="background: transparent; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; padding: 5px 10px; cursor: pointer; color: var(--text-main);">☀️</button>
+    </div>
+</div>
      <!-- ВСТАВЛЯЙ КНОПКУ СЮДА: -->
 <button onclick="initPushNotifications()" style="background: #3b82f6; color: white; padding: 10px; border-radius: 5px; border: none; cursor: pointer; margin-bottom: 15px; width: 100%;">
     🔔 Включить уведомления
@@ -261,7 +260,7 @@
         <!-- Загрузка аватарки -->
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="position: relative; display: inline-block;">
-                <img id="settings-avatar-preview" src="https://via.placeholder.com/100" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+                <img id="settings-avatar-preview" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NiZDVlMSI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg==" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
                 
                 <!-- Невидимый input для выбора файла -->
                 <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">

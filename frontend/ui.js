@@ -61,16 +61,23 @@ export function initTheme() {
 }
 // === ПРОФИЛЬ И НАСТРОЙКИ ===
 
-// Показать экран настроек
 export function showSettings() {
-    document.getElementById('courier-screen').style.display = 'none'; // Скрываем главный экран (проверь, какой ID у твоего главного экрана!)
-    document.getElementById('settings-screen').style.display = 'block'; // Показываем настройки
+    // Безопасно скрываем ВСЕ экраны (и админа, и курьера)
+    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    // Показываем настройки
+    document.getElementById('settings-screen').style.display = 'block';
 }
 
-// Скрыть экран настроек
 export function hideSettings() {
     document.getElementById('settings-screen').style.display = 'none';
-    document.getElementById('courier-screen').style.display = 'block'; // Возвращаем главный экран
+    
+    // Смотрим, кто сейчас сидит в системе, и возвращаем его на родной экран
+    const role = localStorage.getItem('trackflow_role');
+    if (role === 'admin') {
+        document.getElementById('admin-screen').style.display = 'block';
+    } else {
+        document.getElementById('courier-screen').style.display = 'block';
+    }
 }
 
 // Читаем картинку и показываем превью
