@@ -327,3 +327,38 @@ input:focus {
     letter-spacing: 1.5px;
     font-weight: 600;
 }
+/* === ФИКС НЕВИДИМОГО ТЕКСТА НА КНОПКАХ === */
+
+/* 1. Кнопка "Я Курьер" на экране входа */
+.login-card .btn:last-of-type {
+    background: var(--primary) !important;
+    color: #FFFFFF !important;
+}
+
+/* 1.1 Делаем кнопку "Я Администратор" контрастнее */
+.login-card .btn:first-of-type {
+    background: rgba(118, 118, 128, 0.2) !important;
+    color: var(--text-main) !important;
+}
+
+/* 2. Делаем текст белым на ВСЕХ кнопках, где есть заливка (Фото и т.д.) */
+.btn[style*="background"] {
+    color: #FFFFFF !important;
+}
+
+/* 3. Кнопка "Доставлено" */
+.btn-complete {
+    background: var(--success) !important;
+    color: #FFFFFF !important;
+}
+
+/* 4. Кнопка "Показать куда доставить" */
+.btn-map {
+    color: #FFFFFF !important;
+}
+
+/* 5. Исключение: Кнопка "Скопировать ссылку" (оставляем ей цвет темы) */
+.btn[style*="background: transparent"],
+.btn[style*="background:transparent"] {
+    color: var(--text-main) !important;
+}
