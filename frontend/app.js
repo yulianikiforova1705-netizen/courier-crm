@@ -1,12 +1,13 @@
 import { initPushNotifications } from './push.js';
 import { API_URL, apiCall } from './api.js'; // 👈 ДОБАВЛЯЕМ ЭТО=========================================
-import { showNotification, toggleTheme, initTheme } from './ui.js';
+import { showNotification, toggleTheme, initTheme, showSettings, hideSettings, handleAvatarUpload, saveProfile, updateProfileUI } from './ui.js';
 import { drawFinanceChart, drawProfitChart, downloadExcelReport } from './analytics.js';
 import { showMap, closeMap, buildSmartRoute } from './map.js';
 import { loadOrders, updateOrderStatus, createOrder } from './orders.js';
 import { loadAccounting, addExpense, loadTasks, addTask, completeTask } from './finances.js';
 import { startVoiceInput } from './voice.js';
 initTheme();
+updateProfileUI();
 // ==========================================
 // ⚙️ БАЗОВЫЕ НАСТРОЙКИ И API
 // ==========================================
@@ -200,6 +201,10 @@ window.createOrder = createOrder;
 window.updateOrderStatus = updateOrderStatus;
 window.loadTasks = loadTasks;
 window.addExpense = addExpense;
+window.showSettings = showSettings;
+window.hideSettings = hideSettings;
+window.handleAvatarUpload = handleAvatarUpload;
+window.saveProfile = saveProfile;
 window.addTask = addTask;
 window.completeTask = completeTask;
 window.buildSmartRoute = buildSmartRoute;

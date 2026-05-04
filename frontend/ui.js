@@ -59,3 +59,59 @@ export function initTheme() {
         if (btn) btn.innerText = '☀️';
     }
 }
+// === ПРОФИЛЬ И НАСТРОЙКИ ===
+
+// Показать экран настроек
+export function showSettings() {
+    document.getElementById('courier-screen').style.display = 'none'; // Скрываем главный экран (проверь, какой ID у твоего главного экрана!)
+    document.getElementById('settings-screen').style.display = 'block'; // Показываем настройки
+}
+
+// Скрыть экран настроек
+export function hideSettings() {
+    document.getElementById('settings-screen').style.display = 'none';
+    document.getElementById('courier-screen').style.display = 'block'; // Возвращаем главный экран
+}
+
+// Читаем картинку и показываем превью
+export function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Image = e.target.result;
+            document.getElementById('settings-avatar-preview').src = base64Image;
+            document.getElementById('settings-avatar-preview').dataset.tempImg = base64Image; // Сохраняем во временную память
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Сохраняем всё в память браузера
+export function saveProfile() {
+    const newName = document.getElementById('profile-name').value;
+    const newPass = document.getElementById('profile-pass').value;
+    const newAvatar = document.getElementById('settings-avatar-preview').dataset.tempImg;
+
+    if (newName) localStorage.setItem('trackflow_name', newName);
+    if (newPass) localStorage.setItem('trackflow_pass', newPass); // Для реального проекта тут нужен был бы сервер
+    if (newAvatar) localStorage.setItem('trackflow_avatar', newAvatar);
+
+    updateProfileUI(); // Обновляем картинки на экране
+    hideSettings();    // Закрываем настройки
+    alert('✅ Профиль успешно обновлен!'); // Или используй свою красивую showNotification
+}
+
+// Загружаем данные при старте
+export function updateProfileUI() {
+    const savedName = localStorage.getItem('trackflow_name') || 'Курьер';
+    const savedAvatar = localStorage.getItem('trackflow_avatar') || 'https://via.placeholder.com/100';
+
+    const headerAvatar = document.getElementById('header-avatar');
+    const settingsPreview = document.getElementById('settings-avatar-preview');
+    const profileInput = document.getElementById('profile-name');
+
+    if (headerAvatar) headerAvatar.src = savedAvatar;
+    if (settingsPreview) settingsPreview.src = savedAvatar;
+    if (profileInput) profileInput.value = savedName;
+}

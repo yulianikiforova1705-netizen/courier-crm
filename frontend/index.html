@@ -59,13 +59,13 @@
     </div>
 <!-- КРАСИВАЯ ШАПКА ПРИЛОЖЕНИЯ -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); gap: 10px;"> 
-        <!-- Кнопка Выхода (Слева) -->
-        <div style="flex: 1; display: flex; justify-content: flex-start;">
-            <button onclick="logout()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; white-space: nowrap;">
-                🚪 Выйти
-            </button>
-        </div>
-        
+       <div style="flex: 1; display: flex; justify-content: flex-start; align-items: center; gap: 15px;">
+    <!-- Кнопка выхода -->
+    <button onclick="logout()" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 8px; cursor: pointer;">Выйти</button>
+    
+    <!-- Мини-аватарка профиля -->
+    <img id="header-avatar" onclick="showSettings()" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer;" title="Настройки профиля">
+</div>
         <!-- Заголовок (По центру) -->
      <h1 class="trackflow-title">
     TrackFlow
@@ -249,5 +249,40 @@
     <!-- Библиотека для магии WebSockets -->
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script type="module" src="app.js"></script>
+<!-- ЭКРАН НАСТРОЕК ПРОФИЛЯ -->
+<div id="settings-screen" style="display: none; padding-top: 20px;">
+    <div class="card">
+        <!-- Шапка настроек с кнопкой "Назад" -->
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+            <button onclick="hideSettings()" style="background: transparent; border: none; color: var(--primary); font-size: 24px; cursor: pointer; padding: 0;">←</button>
+            <h2 style="margin: 0;">Профиль</h2>
+        </div>
+
+        <!-- Загрузка аватарки -->
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="position: relative; display: inline-block;">
+                <img id="settings-avatar-preview" src="https://via.placeholder.com/100" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+                
+                <!-- Невидимый input для выбора файла -->
+                <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+                
+                <!-- Кнопка-иконка поверх картинки, которая вызывает input -->
+                <label for="avatar-upload" style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid var(--card-bg); font-size: 16px;">
+                    📷
+                </label>
+            </div>
+        </div>
+
+        <!-- Поля ввода -->
+        <label style="display: block; margin-bottom: 5px; font-size: 0.9em; color: #64748b;">Ваше имя</label>
+        <input type="text" id="profile-name" placeholder="Как вас зовут?">
+
+        <label style="display: block; margin-top: 15px; margin-bottom: 5px; font-size: 0.9em; color: #64748b;">Пароль</label>
+        <input type="password" id="profile-pass" placeholder="Новый пароль (оставьте пустым, если не меняете)">
+
+        <!-- Кнопка сохранения -->
+        <button class="btn btn-map" style="margin-top: 20px;" onclick="saveProfile()">Сохранить изменения</button>
+    </div>
+</div>
 </body>
 </html>
