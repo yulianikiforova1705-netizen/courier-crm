@@ -29,32 +29,33 @@ export function showNotification(message) {
 
 // === ТЕМЫ ОФОРМЛЕНИЯ ===
 export function toggleTheme() {
-    // Получаем текущее состояние (светлая ли сейчас тема?)
-    const isCurrentlyLight = document.body.classList.contains('light-mode');
+    const body = document.body;
+    const btn = document.getElementById('theme-btn');
     
-    if (isCurrentlyLight) {
-        // Если была светлая -> делаем темную
-        document.body.classList.remove('light-mode');
+    // Переключаем твой родной класс темной темы
+    body.classList.toggle('dark-theme');
+    
+    if (body.classList.contains('dark-theme')) {
         localStorage.setItem('trackflow_theme', 'dark');
-        document.getElementById('theme-btn').innerText = '☀️';
+        if(btn) btn.innerText = '☀️'; // Горит солнышко (нажми, чтобы сделать светло)
     } else {
-        // Если была темная -> делаем светлую
-        document.body.classList.add('light-mode');
         localStorage.setItem('trackflow_theme', 'light');
-        document.getElementById('theme-btn').innerText = '🌙';
+        if(btn) btn.innerText = '🌙'; // Горит луна (нажми, чтобы сделать темно)
     }
 }
 
 export function initTheme() {
     const savedTheme = localStorage.getItem('trackflow_theme');
     const btn = document.getElementById('theme-btn');
+    const body = document.body;
     
-    // По умолчанию пусть будет темная (если ничего не сохранено)
+    // Если пользователь ранее выбрал светлую тему
     if (savedTheme === 'light') {
-        document.body.classList.add('light-mode');
+        body.classList.remove('dark-theme');
         if (btn) btn.innerText = '🌙';
     } else {
-        document.body.classList.remove('light-mode'); // Явно убираем класс на всякий случай
+        // По умолчанию пусть всегда будет твоя крутая темная тема
+        body.classList.add('dark-theme');
         if (btn) btn.innerText = '☀️';
     }
 }
