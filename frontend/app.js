@@ -261,24 +261,30 @@ window.copyTrackingLink = function(orderId) {
 // === КОРРЕКТНАЯ ИНТЕГРАЦИЯ ВКЛАДКИ ЗАРАБОТКА (Apple Style) ===
 
 function injectCourierFinances() {
-    // Теперь используем ТВОИ ключи из функций входа
     const role = localStorage.getItem('trackflow_role');
     const tabsContainer = document.querySelector('.tabs');
     let btn = document.getElementById('btn-courier-finances');
 
-    // Если зашел курьер и кнопки еще нет — добавляем её
-    if (role === 'courier' && tabsContainer && !btn) {
-        tabsContainer.insertAdjacentHTML('beforeend', `
-            <button class="tab-btn" id="btn-courier-finances" 
-                    onclick="switchTab('courier-finances'); loadCourierFinances()" 
-                    style="flex-basis: 100%; margin-top: 8px;">
-                💰 Заработок
-            </button>
-        `);
+    if (role === 'courier') {
+        // Если зашел курьер и кнопки еще нет — добавляем её
+        if (tabsContainer && !btn) {
+            tabsContainer.insertAdjacentHTML('beforeend', `
+                <button class="tab-btn" id="btn-courier-finances" 
+                        onclick="switchTab('courier-finances'); loadCourierFinances()" 
+                        style="flex-basis: 100%; margin-top: 8px; display: block;">
+                    💰 Заработок
+                </button>
+            `);
+        } else if (btn) {
+            btn.style.display = 'block'; // Показываем, если скрыта
+        }
+    } else {
+        // ЕСЛИ ЗАШЕЛ АДМИН — ЖЕСТКО СКРЫВАЕМ КНОПКУ
+        if (btn) btn.style.display = 'none';
     }
 }
 
-// Следим за изменениями интерфейса (чтобы кнопка не исчезала при обновлении заказов)
+// Следим за изменениями интерфейса
 const uiObserver = new MutationObserver(() => {
     injectCourierFinances();
 });
@@ -292,7 +298,7 @@ injectCourierFinances();
 // === УЛУЧШЕННЫЙ РАСЧЕТ ЗАРАБОТКА (УМНЫЙ ФИЛЬТР) ===
 window.loadCourierFinances = async function() {
     const rawName = localStorage.getItem('trackflow_name') || '';
-    const userName = rawName.trim().toLowerCase(); // Убираем пробелы и приводим к нижнему регистру
+    const userName = rawName.trim().toLowerCase(); 
 
     if (!userName) return;
 
@@ -300,7 +306,7 @@ window.loadCourierFinances = async function() {
         const res = await fetch('https://courier-crm-api.onrender.com/api/orders');
         const orders = await res.json();
         
-        // Фильтруем заказы: проверяем статус и имя курьера без учета регистра
+        // Фильтруем заказы
         const myOrders = orders.filter(o => {
             const status = (o.status || '').toLowerCase();
             const courier = (o.courier_name || '').trim().toLowerCase();
@@ -324,7 +330,9 @@ window.loadCourierFinances = async function() {
 window.addCourierExpense = async function() {
     const desc = document.getElementById('courier-expense-desc').value;
     const amount = document.getElementById('courier-expense-amount').value;
-    const userName = localStorage.getItem('userName') || 'Курьер';
+    
+    // 👇 ИСПРАВЛЕНО: используем правильный ключ trackflow_name вместо старого userName
+    const userName = localStorage.getItem('trackflow_name') || 'Курьер';
 
     if (!desc || !amount) return alert('Пожалуйста, заполните все поля!');
 
